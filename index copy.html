@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub OAuth 登录示例</title>
+</head>
+<body>
+    <button id="github-login">使用 GitHub 登录</button>
+
+    <script>
+        const clientId = 'Ov23lifWj3tVjAX5tVG4';
+        const redirectUri = 'https://app.lacs.cc/callback.html';
+        const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user`;
+
+        document.getElementById('github-login').addEventListener('click', function() {
+            window.location.href = authUrl;
+        });
+    </script>
+</body>
+</html>    
