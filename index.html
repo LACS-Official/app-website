@@ -388,10 +388,18 @@
         // 检查用户是否已登录
         function checkLoggedIn() {
             const token = localStorage.getItem('github_token');
-            const user = localStorage.getItem('github_user');
+            const userStr = localStorage.getItem('github_user');
             
-            if (token && user) {
-                showAppPage(JSON.parse(user));
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    showAppPage(user);
+                } catch (e) {
+                    console.error('解析用户信息失败:', e);
+                    localStorage.removeItem('github_user');
+                    localStorage.removeItem('github_token');
+                    showLoginPage();
+                }
             }
         }
 
@@ -403,17 +411,25 @@
 
         // 显示应用页面
         function showAppPage(user) {
+            if (!user) {
+                showLoginPage();
+                return;
+            }
             loginPage.classList.add('hidden');
             appPage.classList.remove('hidden');
             
             // 更新用户信息
             if (user.avatar_url) {
                 userAvatar.innerHTML = `<img src="${user.avatar_url}" alt="用户头像" class="w-full h-full object-cover">`;
+            } else {
+                userAvatar.innerHTML = '';
             }
             if (user.name) {
                 userName.textContent = user.name;
             } else if (user.login) {
                 userName.textContent = user.login;
+            } else {
+                userName.textContent = '未知用户';
             }
             
             // 加载草稿
@@ -476,7 +492,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.access_token && data.user) {
+                    if (data.access_token && data.user && typeof data.user === 'object') {
                         // 保存令牌和用户信息
                         localStorage.setItem('github_token', data.access_token);
                         localStorage.setItem('github_user', JSON.stringify(data.user));
@@ -752,4 +768,4 @@ ${articleData.content}
         });
     </script>
 </body>
-</html>    
+</html>
