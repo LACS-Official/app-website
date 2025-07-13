@@ -32,8 +32,41 @@
                 content-visibility: auto;
             }
             .editor-shadow {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            }
+            box-shadow: 0 4px 20px rgba(22, 93, 255, 0.12);
+            border: 1px solid rgba(22, 93, 255, 0.1);
+        }
+
+        /* 科技感样式增强 */
+        .form-input:focus {
+            border-color: #0EA5E9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .bg-tech {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+header.bg-white {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, #0EA5E9, #3B82F6);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(22, 93, 255, 0.15);
+        }
             .transition-height {
                 transition: max-height 0.3s ease-in-out;
             }
@@ -204,7 +237,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
                             <label for="article-title" class="block text-sm font-medium text-gray-700 mb-1">文章标题</label>
-                            <input type="text" id="article-title" placeholder="输入文章标题" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                            <input type="text" id="article-title" placeholder="输入文章标题" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 shadow-sm focus:shadow-md">
                         </div>
                         
                         <div>
@@ -214,12 +247,62 @@
                         
                         <div>
                             <label for="article-date" class="block text-sm font-medium text-gray-700 mb-1">发布日期</label>
-                            <input type="date" id="article-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                            <input type="datetime-local" id="article-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
                         </div>
                         
                         <div>
                             <label for="article-tags" class="block text-sm font-medium text-gray-700 mb-1">标签</label>
                             <input type="text" id="article-tags" placeholder="标签1, 标签2, 标签3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-categories" class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                            <input type="text" id="article-categories" placeholder="分类1, 分类2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-version" class="block text-sm font-medium text-gray-700 mb-1">版本</label>
+                            <input type="text" id="article-version" placeholder="1.0.0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-rating" class="block text-sm font-medium text-gray-700 mb-1">评分</label>
+                            <input type="number" id="article-rating" min="1" max="5" step="0.5" placeholder="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-draft" class="block text-sm font-medium text-gray-700 mb-1">草稿状态</label>
+                            <input type="checkbox" id="article-draft" class="mt-1 rounded text-primary focus:ring-primary/50">
+                        </div>
+                        <div>
+                            <label for="article-size" class="block text-sm font-medium text-gray-700 mb-1">软件大小</label>
+                            <input type="text" id="article-size" placeholder="85MB" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-downloadCount" class="block text-sm font-medium text-gray-700 mb-1">下载次数</label>
+                            <input type="number" id="article-downloadCount" placeholder="5000000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-platforms" class="block text-sm font-medium text-gray-700 mb-1">支持平台</label>
+                            <input type="text" id="article-platforms" placeholder="Windows, macOS, Linux" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-official-download" class="block text-sm font-medium text-gray-700 mb-1">官方下载链接</label>
+                            <input type="url" id="article-official-download" placeholder="https://code.visualstudio.com/download" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-official-website" class="block text-sm font-medium text-gray-700 mb-1">官方网站</label>
+                            <input type="url" id="article-official-website" placeholder="https://code.visualstudio.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-image" class="block text-sm font-medium text-gray-700 mb-1">图片路径</label>
+                            <input type="text" id="article-image" placeholder="/images/vscode-banner.jpg" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="article-system-requirements" class="block text-sm font-medium text-gray-700 mb-1">系统要求 (JSON格式)</label>
+                            <textarea id="article-system-requirements" rows="4" placeholder='{"Windows":["Windows 10 或更高版本","1.6 GHz以上处理器"],"macOS":["macOS 10.15或更高版本"],"Linux":["Ubuntu 16.04或更高版本"]}' class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200"></textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="article-changelog" class="block text-sm font-medium text-gray-700 mb-1">更新日志 (每行一项)</label>
+                            <textarea id="article-changelog" rows="3" placeholder="改进了远程开发体验
+增强了AI辅助编码功能
+优化了性能和内存使用" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200"></textarea>
                         </div>
                     </div>
                     
@@ -581,16 +664,54 @@
                 title: articleTitle.value,
                 slug: articleSlug.value || generateSlug(articleTitle.value),
                 date: articleDate.value,
+                draft: document.getElementById('article-draft').checked,
+                categories: document.getElementById('article-categories').value.split(',').map(cat => cat.trim()).filter(cat => cat),
                 tags: articleTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
+                rating: document.getElementById('article-rating').value,
+                version: document.getElementById('article-version').value,
+                size: document.getElementById('article-size').value,
+                downloadCount: document.getElementById('article-downloadCount').value,
+                platforms: document.getElementById('article-platforms').value.split(',').map(plat => plat.trim()).filter(plat => plat),
+                downloads: {
+                    official: document.getElementById('article-official-download').value,
+                    official_website: document.getElementById('article-official-website').value
+                },
+                image: document.getElementById('article-image').value,
+                previousVersions: JSON.parse(document.getElementById('article-previous-versions').value || '[]'),
+                systemRequirements: JSON.parse(document.getElementById('article-system-requirements').value || '{}'),
+                changelog: document.getElementById('article-changelog').value.split('\n').filter(line => line.trim()),
                 content: articleContent.value
             };
-            
+
             // 创建 Markdown 内容
             const markdownContent = `---
 title: "${articleData.title}"
-date: ${articleData.date}
-slug: ${articleData.slug}
-tags: [${articleData.tags.map(tag => `"${tag}"`).join(', ')}]
+date: ${articleData.date}+08:00
+draft: ${articleData.draft}
+categories: [${articleData.categories.map(cat => "${cat}").join(', ')}]
+tags: [${articleData.tags.map(tag => "${tag}").join(', ')}]
+rating: ${articleData.rating}
+version: "${articleData.version}"
+size: "${articleData.size}"
+downloadCount: ${articleData.downloadCount}
+downloads:
+  official: "${articleData.downloads.official}"
+platforms: [${articleData.platforms.map(plat => "${plat}").join(', ')}]
+system_requirements:
+  Windows:
+    ${articleData.systemRequirements.Windows?.map(req => `- ${req}`).join('\n    ')}
+  macOS:
+    ${articleData.systemRequirements.macOS?.map(req => `- ${req}`).join('\n    ')}
+  Linux:
+    ${articleData.systemRequirements.Linux?.map(req => `- ${req}`).join('\n    ')}
+changelog:
+  ${articleData.changelog.map(item => `- ${item}`).join('\n  ')}
+previous_versions:
+  ${articleData.previousVersions.map(version => `-
+    version: "${version.version}"
+    date: ${version.date}
+    changes:
+      ${version.changes.map(change => `- ${change}`).join('\n      ')}`).join('\n  ')}
 ---
 
 ${articleData.content}
