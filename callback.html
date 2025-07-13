@@ -9,34 +9,20 @@
     <p>正在处理授权...</p>
 
     <script>
-        // 从 URL 参数中获取授权码
+        // 从 URL 参数中获取授权码或错误信息
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
 
-        if (code) {
-            // 将授权码发送到后端换取访问令牌
-            fetch('https://app.lacs.cc/api/exchange-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ code })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // 处理返回的访问令牌
-                localStorage.setItem('github_token', data.access_token);
-                window.location.href = '/'; // 重定向到主页
-            })
-            .catch(error => {
-                console.error('获取令牌失败:', error);
-                alert('授权失败，请重试');
-            });
-        } else {
-            const error = params.get('error');
-            alert(`授权错误: ${error || '未知错误'}`);
-            window.location.href = '/';
-        }
+        // 构建重定向 URL 参数
+        const redirectParams = new URLSearchParams();
+        if (code) redirectParams.append('code', code);
+        if (error) redirectParams.append('error', error);
+        if (errorDescription) redirectParams.append('error_description', errorDescription);
+
+        // 重定向到主页面处理授权
+        window.location.href = `/admin/index.html${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
     </script>
 </body>
-</html>    
+</html>
