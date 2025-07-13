@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugo文章发布工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#00B42A',
+                        accent: '#FF7D00',
+                        dark: '#1D2129',
+                        light: '#F2F3F5',
+                        github: '#24292e'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .form-shadow {
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            }
+            .rating-star {
+                transition: color 0.2s ease;
+            }
+            .rating-star:hover,
+            .rating-star.active {
+                color: #FF7D00 !important;
+            }
+            .form-section {
+                @apply border-b border-gray-200 pb-6 mb-6;
+            }
+            .form-section:last-child {
+                @apply border-b-0 pb-0 mb-0;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+            }
+            .btn-secondary {
+                @apply bg-white border border-gray-300 hover:bg-gray-50 text-dark font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+            }
+            .btn-github {
+                @apply bg-github hover:bg-github/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-pencil-square-o text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-dark">Hugo文章发布工具</h1>
+            </div>
+            <div id="user-info" class="hidden">
+                <div class="flex items-center gap-2">
+                    <img id="user-avatar" class="w-6 h-6 rounded-full" alt="用户头像">
+                    <span id="current-user" class="text-sm text-gray-600"></span>
+                </div>
+                <button id="logout-btn" class="ml-3 text-primary hover:text-primary/80 text-sm transition-colors">
+                    <i class="fa fa-sign-out"></i> 退出
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <!-- 登录表单 -->
+        <div id="login-container" class="max-w-md mx-auto mt-12">
+            <div class="bg-white rounded-xl p-6 form-shadow">
+                <h2 class="text-2xl font-bold text-center mb-6 text-dark">使用 GitHub 登录</h2>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600">点击下方按钮使用您的 GitHub 账号登录</p>
+                </div>
+                <button id="github-login-btn" class="btn-github w-full">
+                    <i class="fa fa-github"></i> 使用 GitHub 登录
+                </button>
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <p id="login-error" class="text-red-500 hidden">登录失败，请重试</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文章发布表单 (默认隐藏) -->
+        <div id="form-container" class="max-w-3xl mx-auto mt-8 hidden">
+            <div class="bg-white rounded-xl p-6 form-shadow">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-dark">新建文章</h2>
+                    <div class="flex gap-2">
+                        <button id="preview-btn" class="btn-secondary">
+                            <i class="fa fa-eye"></i> 预览
+                        </button>
+                        <button type="submit" form="post-form" class="btn-primary">
+                            <i class="fa fa-save"></i> 保存并推送到GitHub
+                        </button>
+                    </div>
+                </div>
+                
+                <form id="post-form">
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                            <i class="fa fa-file-text-o text-primary mr-2"></i> 文章基本信息
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">文章标题</label>
+                                <input type="text" id="title" name="title" value="示例文章" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" required>
+                            </div>
+                            
+                            <div>
+                                <label for="slug" class="block text-sm font-medium text-gray-700 mb-1">文章Slug（URL部分）</label>
+                                <input type="text" id="slug" name="slug" value="example-post" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" required>
+                            </div>
+                            
+                            <div>
+                                <label for="date" class="block text-sm font-medium text-gray-700 mb-1">发布日期</label>
+                                <input type="datetime-local" id="date" name="date" value="" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" required>
+                            </div>
+                            
+                            <div>
+                                <label for="draft" class="block text-sm font-medium text-gray-700 mb-1">是否为草稿</label>
+                                <select id="draft" name="draft" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all">
+                                    <option value="false">否</option>
+                                    <option value="true">是</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                            <i class="fa fa-folder-open-o text-primary mr-2"></i> 分类与标签
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="categories" class="block text-sm font-medium text-gray-700 mb-1">分类（每行一个）</label>
+                                <textarea id="categories" name="categories" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="3">开发
+教程</textarea>
+                            </div>
+                            
+                            <div>
+                                <label for="tags" class="block text-sm font-medium text-gray-700 mb-1">标签（每行一个）</label>
+                                <textarea id="tags" name="tags" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="3">Hugo
+教程
+写作</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                            <i class="fa fa-code-fork text-primary mr-2"></i> 软件信息
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="rating" class="block text-sm font-medium text-gray-700 mb-1">评分</label>
+                                <div class="rating-container flex items-center p-2 border border-gray-300 rounded-lg">
+                                    <div id="rating-stars" class="flex">
+                                        <span class="rating-star text-2xl mr-1" data-value="1">★</span>
+                                        <span class="rating-star text-2xl mr-1" data-value="2">★</span>
+                                        <span class="rating-star text-2xl mr-1" data-value="3">★</span>
+                                        <span class="rating-star text-2xl mr-1" data-value="4">★</span>
+                                        <span class="rating-star text-2xl" data-value="5">★</span>
+                                    </div>
+                                    <span class="rating-value ml-3 text-gray-700 text-lg" id="rating-value">5</span>
+                                    <input type="hidden" id="rating" name="rating" value="5">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="version" class="block text-sm font-medium text-gray-700 mb-1">版本号</label>
+                                <input type="text" id="version" name="version" value="1.0.0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="official_website" class="block text-sm font-medium text-gray-700 mb-1">官方网站</label>
+                                <input type="url" id="official_website" name="official_website" value="https://example.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="download_official" class="block text-sm font-medium text-gray-700 mb-1">官方下载链接</label>
+                                <input type="url" id="download_official" name="download_official" value="https://example.com/download" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all">
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">封面图片路径</label>
+                                <input type="text" id="image" name="image" value="/images/example.jpg" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                            <i class="fa fa-desktop text-primary mr-2"></i> 系统要求
+                        </h3>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">支持的操作系统</label>
+                            <div class="flex flex-wrap gap-3">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" id="win-support" checked class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Windows</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" id="mac-support" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">macOS</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" id="linux-support" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Linux</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="windows-requirements" class="mb-4">
+                            <label for="windows-req" class="block text-sm font-medium text-gray-700 mb-1">Windows 系统要求</label>
+                            <textarea id="windows-req" name="windows-req" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="3">
+- Windows 10 或更高版本
+- 1.6 GHz以上处理器
+- 4GB RAM
+- 1GB可用硬盘空间
+                            </textarea>
+                        </div>
+                        
+                        <div id="mac-requirements" class="mb-4 hidden">
+                            <label for="mac-req" class="block text-sm font-medium text-gray-700 mb-1">macOS 系统要求</label>
+                            <textarea id="mac-req" name="mac-req" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="3"></textarea>
+                        </div>
+                        
+                        <div id="linux-requirements" class="mb-4 hidden">
+                            <label for="linux-req" class="block text-sm font-medium text-gray-700 mb-1">Linux 系统要求</label>
+                            <textarea id="linux-req" name="linux-req" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                            <i class="fa fa-file-text text-primary mr-2"></i> 文章内容
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                                <label for="content" class="block text-sm font-medium text-gray-700 mb-1">文章正文（Markdown格式）</label>
+                                <textarea id="content" name="content" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all" rows="10">
+# 这是一篇示例文章
+
+欢迎使用Hugo文章发布工具！这是一篇示例文章，展示了如何使用本工具创建和发布内容到你的Hugo博客。
+
+## 如何使用
+
+1. 填写文章基本信息
+2. 添加分类和标签
+3. 设置软件信息和评分
+4. 指定系统要求
+5. 编写文章内容（支持Markdown格式）
+6. 点击"保存并推送到GitHub"按钮
+
+## 功能亮点
+
+- 支持完整的Hugo Front Matter
+- 实时预览Markdown内容
+- 一键推送到GitHub仓库
+- 支持多平台系统要求
+- 直观的评分系统
+                                </textarea>
+                            </div>
+                            
+                            <div id="preview-container" class="bg-gray-50 rounded-lg p-4 border border-gray-200 hidden">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">预览</h4>
+                                <div id="preview-content" class="text-sm text-gray-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 操作结果提示 -->
+            <div id="loading" class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 hidden">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fa fa-circle-o-notch fa-spin text-blue-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-blue-800">正在处理请求，请稍候...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="success" class="mt-4 bg-green-50 border-l-4 border-green-400 p-4 hidden">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fa fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">文章发布成功！</p>
+                        <p class="text-sm text-green-700 mt-1">新文章已创建并推送到GitHub仓库</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="error" class="mt-4 bg-red-50 border-l-4 border-red-400 p-4 hidden">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fa fa-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">操作失败</p>
+                        <p id="error-message" class="text-sm text-red-700 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>Hugo文章发布工具 &copy; 2025</p>
+        </div>
+    </footer>
+
+    <!-- Marked.js - 用于Markdown预览 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script>
+        // 处理Unicode的Base64编码函数
+        function btoaUnicode(str) {
+            const utf8Bytes = encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+                return String.fromCharCode(parseInt(p1, 16));
+            });
+            return btoa(utf8Bytes);
+        }
+        
+        // 简单的Markdown解析器（用于预览功能）
+        function parseMarkdown(markdown) {
+            if (!marked) return markdown;
+            return marked.parse(markdown);
+        }
+        
+        // 获取URL参数
+        function getUrlParam(name) {
+            const url = new URL(window.location.href);
+            return url.searchParams.get(name);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置当前日期时间
+            const now = new Date();
+            const dateTime = now.toISOString().slice(0, 16);
+            document.getElementById('date').value = dateTime;
+            
+            // 初始化评分系统
+            const ratingStars = document.querySelectorAll('.rating-star');
+            ratingStars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = parseInt(this.getAttribute('data-value'));
+                    document.getElementById('rating').value = value;
+                    document.getElementById('rating-value').textContent = value;
+                    
+                    // 更新星星颜色
+                    ratingStars.forEach(s => {
+                        if (parseInt(s.getAttribute('data-value')) <= value) {
+                            s.classList.add('active');
+                        } else {
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+            });
+            
+            // 默认选中5星
+            ratingStars.forEach((star, index) => {
+                if (index < 5) {
+                    star.classList.add('active');
+                }
+            });
+            
+            // 操作系统支持切换
+            document.getElementById('win-support').addEventListener('change', function() {
+                document.getElementById('windows-requirements').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            document.getElementById('mac-support').addEventListener('change', function() {
+                document.getElementById('mac-requirements').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            document.getElementById('linux-support').addEventListener('change', function() {
+                document.getElementById('linux-requirements').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // GitHub登录按钮点击事件
+            document.getElementById('github-login-btn').addEventListener('click', function() {
+                // 获取客户端ID的API
+                fetch('/api/config/github')
+                    .then(response => response.json())
+                    .then(data => {
+                        const clientId = data.clientId;
+                        const redirectUri = encodeURIComponent(window.location.origin + '/api/auth/callback');
+                        const scope = 'repo';
+                        
+                        const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+                        window.location.href = authUrl;
+                    })
+                    .catch(error => {
+                        console.error('获取配置失败:', error);
+                        document.getElementById('login-error').textContent = '获取登录配置失败，请重试';
+                        document.getElementById('login-error').classList.remove('hidden');
+                    });
+            });
+            
+            // 检查URL中是否有code参数（OAuth回调）
+            const code = getUrlParam('code');
+            if (code) {
+                // 显示加载状态
+                document.getElementById('login-container').innerHTML = `
+                    <div class="bg-white rounded-xl p-6 form-shadow text-center">
+                        <div class="flex justify-center mb-4">
+                            <i class="fa fa-circle-o-notch fa-spin text-primary text-4xl"></i>
+                        </div>
+                        <p class="text-gray-600">正在验证身份，请稍候...</p>
+                    </div>
+                `;
+                
+                // 调用后端API交换token
+                fetch(`/api/auth/callback?code=${code}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('登录请求失败');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) {
+                            throw new Error(data.error);
+                        }
+                        
+                        // 保存用户信息和token
+                        sessionStorage.setItem('currentUser', data.user.login);
+                        sessionStorage.setItem('userAvatar', data.user.avatar_url);
+                        sessionStorage.setItem('githubToken', data.token);
+                        
+                        // 刷新页面
+                        window.location.href = window.location.origin;
+                    })
+                    .catch(error => {
+                        console.error('登录失败:', error);
+                        document.getElementById('login-container').innerHTML = `
+                            <div class="bg-white rounded-xl p-6 form-shadow text-center">
+                                <div class="flex justify-center mb-4">
+                                    <i class="fa fa-exclamation-circle text-red-500 text-4xl"></i>
+                                </div>
+                                <p class="text-red-500">登录失败</p>
+                                <p class="text-gray-600 mt-2">${error.message}</p>
+                                <button id="retry-login" class="btn-primary mt-4 mx-auto">
+                                    <i class="fa fa-refresh"></i> 重试
+                                </button>
+                            </div>
+                        `;
+                        
+                        // 重试登录按钮
+                        document.getElementById('retry-login').addEventListener('click', function() {
+                            window.location.href = window.location.origin;
+                        });
+                    });
+            }
+            
+            // 检查用户是否已登录
+            const currentUser = sessionStorage.getItem('currentUser');
+            const userAvatar = sessionStorage.getItem('userAvatar');
+            
+            if (currentUser && userAvatar) {
+                document.getElementById('current-user').textContent = currentUser;
+                document.getElementById('user-avatar').src = userAvatar;
+                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('login-container').classList.add('hidden');
+                document.getElementById('form-container').classList.remove('hidden');
+            }
+            
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('userAvatar');
+                sessionStorage.removeItem('githubToken');
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('user-info').classList.add('hidden');
+            });
+            
+            // 预览功能
+            document.getElementById('preview-btn').addEventListener('click', function() {
+                const content = document.getElementById('content').value;
+                const previewContainer = document.getElementById('preview-container');
+                const previewContent = document.getElementById('preview-content');
+                
+                previewContent.innerHTML = parseMarkdown(content);
+                previewContainer.classList.toggle('hidden');
+            });
+            
+            // 表单提交处理
+            document.getElementById('post-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // 显示加载状态
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('success').classList.add('hidden');
+                document.getElementById('error').classList.add('hidden');
+                
+                try {
+                    const githubToken = sessionStorage.getItem('githubToken');
+                    if (!githubToken) {
+                        throw new Error('未登录或会话已过期');
+                    }
+                    
+                    // 构建Markdown内容
+                    const postData = {
+                        title: document.getElementById('title').value,
+                        slug: document.getElementById('slug').value,
+                        date: new Date(document.getElementById('date').value).toISOString(),
+                        draft: document.getElementById('draft').value === 'true',
+                        categories: document.getElementById('categories').value.split('\n').filter(Boolean),
+                        tags: document.getElementById('tags').value.split('\n').filter(Boolean),
+                        rating: parseInt(document.getElementById('rating').value),
+                        version: document.getElementById('version').value,
+                        downloads: {
+                            official: document.getElementById('download_official').value
+                        },
+                        official_website: document.getElementById('official_website').value,
+                        image: document.getElementById('image').value,
+                        platforms: [],
+                        system_requirements: {},
+                        content: document.getElementById('content').value.trim()
+                    };
+                    
+                    // 添加支持的平台
+                    if (document.getElementById('win-support').checked) {
+                        postData.platforms.push('Windows');
+                        postData.system_requirements.Windows = document.getElementById('windows-req').value.trim().split('\n').filter(Boolean);
+                    }
+                    
+                    if (document.getElementById('mac-support').checked) {
+                        postData.platforms.push('macOS');
+                        postData.system_requirements.macOS = document.getElementById('mac-req').value.trim().split('\n').filter(Boolean);
+                    }
+                    
+                    if (document.getElementById('linux-support').checked) {
+                        postData.platforms.push('Linux');
+                        postData.system_requirements.Linux = document.getElementById('linux-req').value.trim().split('\n').filter(Boolean);
+                    }
+                    
+                    // 构建YAML Front Matter
+                    let frontMatter = `---\ntitle: "${postData.title}"\ndate: ${postData.date}\ndraft: ${postData.draft}\ncategories:\n`;
+                    
+                    postData.categories.forEach(cat => {
+                        frontMatter += `  - ${cat}\n`;
+                    });
+                    
+                    frontMatter += `tags:\n`;
+                    postData.tags.forEach(tag => {
+                        frontMatter += `  - ${tag}\n`;
+                    });
+                    
+                    frontMatter += `rating: ${postData.rating}\nversion: ${postData.version}\ndownloads:\n  official: ${postData.downloads.official}\nofficial_website: ${postData.official_website}\nplatforms:\n`;
+                    
+                    postData.platforms.forEach(platform => {
+                        frontMatter += `  - ${platform}\n`;
+                    });
+                    
+                    frontMatter += `system_requirements:\n`;
+                    
+                    Object.keys(postData.system_requirements).forEach(os => {
+                        frontMatter += `  ${os}:\n`;
+                        postData.system_requirements[os].forEach(req => {
+                            frontMatter += `    - ${req}\n`;
+                        });
+                    });
+                    
+                    frontMatter += `image: ${postData.image}\n---\n\n`;
+                    
+                    // 合并Front Matter和内容
+                    const fullMarkdown = frontMatter + postData.content;
+                    
+                    // 发送到API处理
+                    const response = await fetch('/api/publish', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${githubToken}`
+                        },
+                        body: JSON.stringify({
+                            content: fullMarkdown,
+                            slug: postData.slug,
+                            title: postData.title
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('success').classList.remove('hidden');
+                        
+                        // 成功后重置表单
+                        setTimeout(() => {
+                            document.getElementById('post-form').reset();
+                            document.getElementById('date').value = dateTime;
+                            document.getElementById('rating').value = 5;
+                            document.getElementById('rating-value').textContent = 5;
+                            ratingStars.forEach((star, index) => {
+                                if (index < 5) {
+                                    star.classList.add('active');
+                                } else {
+                                    star.classList.remove('active');
+                                }
+                            });
+                            document.getElementById('win-support').checked = true;
+                            document.getElementById('windows-requirements').style.display = 'block';
+                            document.getElementById('mac-requirements').style.display = 'none';
+                            document.getElementById('linux-requirements').style.display = 'none';
+                            document.getElementById('preview-container').classList.add('hidden');
+                        }, 3000);
+                    } else {
+                        throw new Error(result.error || '发布失败，请重试');
+                    }
+                } catch (error) {
+                    console.error('发布失败:', error);
+                    document.getElementById('error-message').textContent = error.message;
+                    document.getElementById('error').classList.remove('hidden');
+                } finally {
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
