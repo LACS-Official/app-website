@@ -1077,8 +1077,10 @@ header.bg-white {
 title: "${articleData.title}"
 date: ${articleData.date}+08:00
 draft: ${articleData.draft}
-categories: [${articleData.categories.map(cat => "${cat}").join(', ')}]
-tags: [${articleData.tags.map(tag => "${tag}").join(', ')}]
+categories:
+  - ${articleData.categories.join('\n  - ')}
+tags:
+  - ${articleData.tags.join('\n  - ')}
 rating: ${articleData.rating}
 version: "${articleData.version}"
 size: "${articleData.size}"
