@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>授权回调</title>
+</head>
+<body>
+    <p>正在处理授权...</p>
+
+    <script>
+        // 从 URL 参数中获取授权码
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+
+        if (code) {
+            // 将授权码发送到后端换取访问令牌
+            fetch('https://app.lacs.cc/api/exchange-token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 处理返回的访问令牌
+                localStorage.setItem('github_token', data.access_token);
+                window.location.href = '/'; // 重定向到主页
+            })
+            .catch(error => {
+                console.error('获取令牌失败:', error);
+                alert('授权失败，请重试');
+            });
+        } else {
+            const error = params.get('error');
+            alert(`授权错误: ${error || '未知错误'}`);
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>    
