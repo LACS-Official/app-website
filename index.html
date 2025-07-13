@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub OAuth 登录示例</title>
+    <title>Hugo 文章发布工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -12,12 +12,12 @@
                 extend: {
                     colors: {
                         primary: '#165DFF',
-                        secondary: '#0A1128',
-                        accent: '#3D5A80',
-                        neutral: '#E0FBFC',
-                        success: '#43A047',
-                        warning: '#FB8C00',
-                        error: '#E53935'
+                        secondary: '#0F172A',
+                        accent: '#0EA5E9',
+                        neutral: '#64748B',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
                     },
                     fontFamily: {
                         inter: ['Inter', 'system-ui', 'sans-serif'],
@@ -31,733 +31,725 @@
             .content-auto {
                 content-visibility: auto;
             }
-            .glass {
-                backdrop-filter: blur(12px);
-                background-color: rgba(255, 255, 255, 0.7);
+            .editor-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
-            .text-shadow {
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
-            .transition-all-300 {
-                transition: all 300ms ease-in-out;
+            .transition-height {
+                transition: max-height 0.3s ease-in-out;
             }
         }
     </style>
 </head>
-<body class="font-inter bg-gray-50 min-h-screen">
+<body class="font-inter bg-gray-50 text-gray-800 min-h-screen flex flex-col">
     <!-- 登录页面 -->
-    <div id="login-container" class="flex flex-col items-center justify-center min-h-screen px-4 py-8">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 glass">
+    <div id="login-page" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-auto transform transition-all duration-300 hover:shadow-xl">
             <div class="text-center mb-8">
-                <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-secondary mb-2">Welcome</h1>
-                <p class="text-gray-600">使用 GitHub 账户登录访问内容</p>
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <i class="fa fa-github text-primary text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Hugo 文章发布工具</h2>
+                <p class="text-gray-500 mt-2">使用 GitHub 账户登录以发布文章</p>
             </div>
             
             <div class="space-y-4">
-                <button id="github-login" class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-all-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="fa fa-github text-xl"></i>
-                    <span>使用 GitHub 登录</span>
+                <button id="github-login-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg">
+                    <i class="fa fa-github mr-2"></i>
+                    使用 GitHub 登录
                 </button>
                 
                 <div class="relative flex items-center my-4">
-                    <div class="flex-grow border-t border-gray-300"></div>
+                    <div class="flex-grow border-t border-gray-200"></div>
                     <span class="flex-shrink mx-4 text-gray-500">或</span>
-                    <div class="flex-grow border-t border-gray-300"></div>
+                    <div class="flex-grow border-t border-gray-200"></div>
                 </div>
                 
-                <p class="text-center text-gray-600 text-sm">
-                    登录即表示您同意我们的 <a href="#" class="text-primary hover:underline">服务条款</a> 和 <a href="#" class="text-primary hover:underline">隐私政策</a>
-                </p>
-            </div>
-            
-            <div id="login-error" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fa fa-exclamation-circle text-error mr-2"></i>
-                    <span class="text-error text-sm">登录失败，请重试</span>
+                <div id="login-error" class="hidden bg-danger/10 border border-danger/30 text-danger px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fa fa-exclamation-circle mr-2"></i>
+                        <span id="error-message">登录失败，请重试</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="mt-8 text-center text-gray-500 text-sm">
-            <p>© 2025 GitHub OAuth 示例应用</p>
+            
+            <div class="mt-8 text-center text-gray-500 text-sm">
+                <p>登录即表示您同意我们的 <a href="#" class="text-primary hover:underline">服务条款</a> 和 <a href="#" class="text-primary hover:underline">隐私政策</a></p>
+            </div>
         </div>
     </div>
 
-    <!-- 主页面内容 (默认隐藏) -->
-    <div id="main-container" class="hidden">
-        <!-- 导航栏 -->
-        <nav class="bg-white shadow-md fixed w-full z-50 transition-all duration-300" id="navbar">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
+    <!-- 主应用页面 (默认隐藏) -->
+    <div id="app-page" class="hidden flex flex-col min-h-screen">
+        <!-- 顶部导航栏 -->
+        <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
                     <div class="flex items-center">
-                        <a href="#" class="flex-shrink-0 flex items-center">
-                            <i class="fa fa-github text-2xl text-primary mr-2"></i>
-                            <span class="font-bold text-xl text-secondary">GitHub 应用</span>
-                        </a>
-                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <a href="#dashboard" class="border-b-2 border-primary px-1 pt-1 text-sm font-medium text-primary">仪表盘</a>
-                            <a href="#repositories" class="border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">仓库</a>
-                            <a href="#settings" class="border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">设置</a>
+                        <i class="fa fa-github text-primary text-xl mr-2"></i>
+                        <h1 class="text-xl font-bold text-gray-900">Hugo 文章发布工具</h1>
+                    </div>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">仪表盘</a>
+                        <a href="#" class="text-primary border-b-2 border-primary pb-1 font-medium">新建文章</a>
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">文章列表</a>
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">设置</a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="save-draft-btn" class="hidden md:flex items-center px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors duration-200">
+                        <i class="fa fa-save mr-1.5"></i> 保存草稿
+                    </button>
+                    
+                    <div class="relative">
+                        <button id="user-menu-btn" class="flex items-center space-x-2">
+                            <div id="user-avatar" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                <img src="https://picsum.photos/200/200" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <span id="user-name" class="hidden md:inline text-sm font-medium text-gray-700">用户名</span>
+                            <i class="fa fa-caret-down text-gray-500 text-xs"></i>
+                        </button>
+                        
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa fa-user mr-2"></i> 个人资料
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa fa-cog mr-2"></i> 设置
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-danger hover:bg-gray-100">
+                                <i class="fa fa-sign-out mr-2"></i> 退出登录
+                            </a>
                         </div>
                     </div>
-                    <div class="flex items-center">
-                        <button id="logout" class="text-gray-500 hover:text-gray-700 focus:outline-none mr-4">
-                            <i class="fa fa-sign-out text-lg"></i>
+                    
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-700 hover:text-primary">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端菜单 (默认隐藏) -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 py-2 px-4">
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">仪表盘</a>
+                <a href="#" class="block py-2 text-primary font-medium">新建文章</a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">文章列表</a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">设置</a>
+                <div class="border-t border-gray-100 my-2"></div>
+                <button id="mobile-save-draft-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors duration-200">
+                    <i class="fa fa-save mr-1.5"></i> 保存草稿
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- 页面标题 -->
+            <div class="mb-6">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">新建文章</h2>
+                <p class="text-gray-500 mt-1">撰写并发布您的 Hugo 博客文章</p>
+            </div>
+            
+            <!-- 文章编辑器 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden editor-shadow">
+                <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="粗体">
+                            <i class="fa fa-bold"></i>
                         </button>
-                        <div class="ml-3 relative">
-                            <div id="user-info" class="hidden">
-                                <div class="flex items-center">
-                                    <img id="user-avatar" class="h-8 w-8 rounded-full object-cover" src="https://picsum.photos/200/200" alt="用户头像">
-                                    <span id="current-user" class="ml-2 text-sm font-medium text-gray-700"></span>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="斜体">
+                            <i class="fa fa-italic"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="链接">
+                            <i class="fa fa-link"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="图片">
+                            <i class="fa fa-image"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="列表">
+                            <i class="fa fa-list-ul"></i>
+                        </button>
+                        <div class="border-l border-gray-300 h-5 mx-1"></div>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="预览">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <select id="github-repo" class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="">选择 GitHub 仓库</option>
+                                <option value="repo1">my-hugo-blog</option>
+                                <option value="repo2">another-repo</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <i class="fa fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <select id="article-path" class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="">选择文章路径</option>
+                                <option value="posts">content/posts/</option>
+                                <option value="pages">content/pages/</option>
+                                <option value="custom">自定义...</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <i class="fa fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- 文章元数据 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="article-title" class="block text-sm font-medium text-gray-700 mb-1">文章标题</label>
+                            <input type="text" id="article-title" placeholder="输入文章标题" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        
+                        <div>
+                            <label for="article-slug" class="block text-sm font-medium text-gray-700 mb-1">URL 别名</label>
+                            <input type="text" id="article-slug" placeholder="自动生成" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200" readonly>
+                        </div>
+                        
+                        <div>
+                            <label for="article-date" class="block text-sm font-medium text-gray-700 mb-1">发布日期</label>
+                            <input type="date" id="article-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        
+                        <div>
+                            <label for="article-tags" class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                            <input type="text" id="article-tags" placeholder="标签1, 标签2, 标签3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                    </div>
+                    
+                    <!-- 文章内容编辑器 -->
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="w-full md:w-1/2">
+                            <label for="article-content" class="block text-sm font-medium text-gray-700 mb-1">文章内容 (Markdown)</label>
+                            <textarea id="article-content" rows="20" placeholder="开始撰写您的文章..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200 resize-none"></textarea>
+                        </div>
+                        
+                        <div class="w-full md:w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">预览</label>
+                            <div id="article-preview" class="w-full min-h-[320px] px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 overflow-auto">
+                                <div class="text-gray-400 italic text-center pt-10">
+                                    <i class="fa fa-file-text-o text-3xl mb-2"></i>
+                                    <p>预览将显示在这里</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </nav>
-
-        <!-- 移动端菜单 (默认隐藏) -->
-        <div class="sm:hidden hidden" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="#dashboard" class="bg-primary text-white block pl-3 pr-4 py-2 rounded-md text-base font-medium">仪表盘</a>
-                <a href="#repositories" class="text-gray-700 hover:bg-gray-50 hover:text-primary block pl-3 pr-4 py-2 rounded-md text-base font-medium">仓库</a>
-                <a href="#settings" class="text-gray-700 hover:bg-gray-50 hover:text-primary block pl-3 pr-4 py-2 rounded-md text-base font-medium">设置</a>
-            </div>
-        </div>
-
-        <!-- 主内容区 -->
-        <main class="pt-20 pb-10">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- 欢迎横幅 -->
-                <div class="bg-gradient-to-r from-primary to-primary/70 rounded-2xl shadow-lg p-6 mb-8 text-white">
-                    <div class="flex flex-col md:flex-row items-center justify-between">
-                        <div>
-                            <h2 class="text-[clamp(1.5rem,3vw,2.25rem)] font-bold mb-2 text-shadow">欢迎回来，<span id="welcome-user"></span>！</h2>
-                            <p class="text-white/90 mb-4">很高兴见到你，今天有什么计划？</p>
-                            <div class="flex flex-wrap gap-2">
-                                <button class="bg-white text-primary hover:bg-gray-100 font-medium py-2 px-4 rounded-lg transition-all-300 shadow-md hover:shadow-lg">
-                                    <i class="fa fa-plus mr-1"></i> 创建仓库
-                                </button>
-                                <button class="bg-transparent border border-white text-white hover:bg-white/10 font-medium py-2 px-4 rounded-lg transition-all-300">
-                                    <i class="fa fa-search mr-1"></i> 查找项目
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-6 md:mt-0">
-                            <img id="welcome-avatar" src="https://picsum.photos/200/200" alt="用户头像" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white/30 shadow-lg">
-                        </div>
+                
+                <div class="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50">
+                    <div id="publish-status" class="hidden text-sm text-success flex items-center">
+                        <i class="fa fa-check-circle mr-1.5"></i>
+                        <span>文章已保存到 GitHub</span>
                     </div>
-                </div>
-
-                <!-- 数据卡片 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-md p-6 transition-all-300 hover:shadow-lg hover:-translate-y-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-500 text-sm">仓库总数</p>
-                                <h3 class="text-3xl font-bold mt-1" id="repo-count">0</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <i class="fa fa-folder text-primary text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex items-center">
-                            <span class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-up mr-1"></i> 12%
-                            </span>
-                            <span class="text-gray-500 text-sm ml-2">相比上月</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-md p-6 transition-all-300 hover:shadow-lg hover:-translate-y-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-500 text-sm">关注者</p>
-                                <h3 class="text-3xl font-bold mt-1" id="followers-count">0</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                                <i class="fa fa-users text-purple-600 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex items-center">
-                            <span class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-up mr-1"></i> 8%
-                            </span>
-                            <span class="text-gray-500 text-sm ml-2">相比上月</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-md p-6 transition-all-300 hover:shadow-lg hover:-translate-y-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-500 text-sm">星标</p>
-                                <h3 class="text-3xl font-bold mt-1" id="stars-count">0</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                                <i class="fa fa-star text-yellow-500 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex items-center">
-                            <span class="text-green-500 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-up mr-1"></i> 24%
-                            </span>
-                            <span class="text-gray-500 text-sm ml-2">相比上月</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-md p-6 transition-all-300 hover:shadow-lg hover:-translate-y-1">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-500 text-sm">贡献</p>
-                                <h3 class="text-3xl font-bold mt-1" id="contributions-count">0</h3>
-                            </div>
-                            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                                <i class="fa fa-code-fork text-green-600 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex items-center">
-                            <span class="text-red-500 text-sm font-medium flex items-center">
-                                <i class="fa fa-arrow-down mr-1"></i> 3%
-                            </span>
-                            <span class="text-gray-500 text-sm ml-2">相比上月</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 最近仓库 -->
-                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">最近仓库</h2>
-                        <a href="#" class="text-primary hover:text-primary/80 text-sm font-medium flex items-center">
-                            查看全部 <i class="fa fa-chevron-right ml-1 text-xs"></i>
-                        </a>
-                    </div>
-                    <div id="repositories-container" class="space-y-4">
-                        <!-- 仓库卡片将通过JavaScript动态生成 -->
-                    </div>
-                </div>
-
-                <!-- 活动记录 -->
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-800">最近活动</h2>
-                        <div class="flex space-x-2">
-                            <button class="px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary">本周</button>
-                            <button class="px-3 py-1 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-100">本月</button>
-                            <button class="px-3 py-1 text-xs font-medium rounded-md text-gray-500 hover:bg-gray-100">全部</button>
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <!-- 时间线垂直线 -->
-                        <div class="absolute top-0 bottom-0 left-5 w-0.5 bg-gray-200"></div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button id="preview-article-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <i class="fa fa-external-link mr-1.5"></i> 预览文章
+                        </button>
                         
-                        <div id="activities-container" class="space-y-6">
-                            <!-- 活动记录将通过JavaScript动态生成 -->
-                        </div>
+                        <button id="publish-article-btn" class="px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-all duration-300 shadow hover:shadow-md flex items-center">
+                            <i class="fa fa-paper-plane mr-1.5"></i> 发布到 GitHub
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
 
         <!-- 页脚 -->
-        <footer class="bg-white border-t border-gray-200">
-            <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <footer class="bg-white border-t border-gray-200 py-6">
+            <div class="container mx-auto px-4">
                 <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div class="flex items-center mb-4 md:mb-0">
-                        <i class="fa fa-github text-2xl text-primary mr-2"></i>
-                        <span class="font-bold text-lg text-secondary">GitHub 应用</span>
+                    <div class="mb-4 md:mb-0">
+                        <p class="text-gray-500 text-sm">© 2025 Hugo 文章发布工具. 保留所有权利.</p>
                     </div>
-                    <div class="flex space-x-6 mb-4 md:mb-0">
-                        <a href="#" class="text-gray-500 hover:text-primary">
-                            <i class="fa fa-twitter text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-500 hover:text-primary">
-                            <i class="fa fa-linkedin text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-500 hover:text-primary">
-                            <i class="fa fa-instagram text-xl"></i>
-                        </a>
-                        <a href="#" class="text-gray-500 hover:text-primary">
+                    
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
                             <i class="fa fa-github text-xl"></i>
                         </a>
-                    </div>
-                    <div class="text-gray-500 text-sm">
-                        &copy; 2025 GitHub OAuth 示例应用. 保留所有权利.
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
+                            <i class="fa fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
+                            <i class="fa fa-envelope text-xl"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </footer>
     </div>
 
-    <!-- 回调页面 (用于处理GitHub授权返回) -->
-    <div id="callback-container" class="hidden">
-        <div class="flex flex-col items-center justify-center min-h-screen px-4 py-8">
-            <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-primary mx-auto mb-4"></div>
-                <h2 class="text-xl font-bold text-gray-800 mb-2">正在验证...</h2>
-                <p class="text-gray-600">我们正在验证您的身份，请稍候...</p>
+    <!-- 加载中模态框 (默认隐藏) -->
+    <div id="loading-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex items-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mr-4"></div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900" id="loading-message">正在处理...</h3>
+                    <p class="text-gray-500 mt-1" id="loading-submessage">请稍候...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功提示模态框 (默认隐藏) -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 scale-95 opacity-0" id="success-modal-content">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mb-4">
+                    <i class="fa fa-check text-success text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900" id="success-message">操作成功</h3>
+                <p class="text-gray-500 mt-2" id="success-submessage">您的文章已成功发布到 GitHub</p>
+                <div class="mt-6">
+                    <button id="success-ok-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误提示模态框 (默认隐藏) -->
+    <div id="error-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-danger/10 mb-4">
+                    <i class="fa fa-times text-danger text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900" id="error-modal-message">操作失败</h3>
+                <p class="text-gray-500 mt-2" id="error-modal-submessage">发生了错误，请重试</p>
+                <div class="mt-6">
+                    <button id="error-ok-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300">
+                        确定
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // 常量定义
-        const clientId = 'YOUR_CLIENT_ID';
-        const redirectUri = 'YOUR_REDIRECT_URI';
-        const apiBaseUrl = '/api'; // Vercel Serverless Functions 基础路径
-        
+        // 配置信息
+        const config = {
+            clientId: 'Ov23lifWj3tVjAX5tVG4',
+            redirectUri: 'https://app.lacs.cc/callback.html',
+            authUrl: 'https://github.com/login/oauth/authorize',
+            tokenUrl: '/api/exchange-token' // Vercel Serverless 函数路径
+        };
+
         // DOM 元素
-        const loginContainer = document.getElementById('login-container');
-        const mainContainer = document.getElementById('main-container');
-        const callbackContainer = document.getElementById('callback-container');
-        const githubLoginBtn = document.getElementById('github-login');
-        const logoutBtn = document.getElementById('logout');
-        const userInfo = document.getElementById('user-info');
-        const currentUser = document.getElementById('current-user');
+        const loginPage = document.getElementById('login-page');
+        const appPage = document.getElementById('app-page');
+        const githubLoginBtn = document.getElementById('github-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
         const userAvatar = document.getElementById('user-avatar');
-        const welcomeUser = document.getElementById('welcome-user');
-        const welcomeAvatar = document.getElementById('welcome-avatar');
-        const loginError = document.getElementById('login-error');
-        const repoCount = document.getElementById('repo-count');
-        const followersCount = document.getElementById('followers-count');
-        const starsCount = document.getElementById('stars-count');
-        const contributionsCount = document.getElementById('contributions-count');
-        const repositoriesContainer = document.getElementById('repositories-container');
-        const activitiesContainer = document.getElementById('activities-container');
-        const navbar = document.getElementById('navbar');
-        
-        // 初始化
-        function init() {
-            // 检查 URL 中是否有授权码
+        const userName = document.getElementById('user-name');
+        const loadingModal = document.getElementById('loading-modal');
+        const loadingMessage = document.getElementById('loading-message');
+        const loadingSubmessage = document.getElementById('loading-submessage');
+        const successModal = document.getElementById('success-modal');
+        const successModalContent = document.getElementById('success-modal-content');
+        const successMessage = document.getElementById('success-message');
+        const successSubmessage = document.getElementById('success-submessage');
+        const successOkBtn = document.getElementById('success-ok-btn');
+        const errorModal = document.getElementById('error-modal');
+        const errorModalMessage = document.getElementById('error-modal-message');
+        const errorModalSubmessage = document.getElementById('error-modal-submessage');
+        const errorOkBtn = document.getElementById('error-ok-btn');
+        const articleTitle = document.getElementById('article-title');
+        const articleSlug = document.getElementById('article-slug');
+        const articleContent = document.getElementById('article-content');
+        const articlePreview = document.getElementById('article-preview');
+        const articleDate = document.getElementById('article-date');
+        const articleTags = document.getElementById('article-tags');
+        const publishArticleBtn = document.getElementById('publish-article-btn');
+        const publishStatus = document.getElementById('publish-status');
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        const mobileSaveDraftBtn = document.getElementById('mobile-save-draft-btn');
+        const previewArticleBtn = document.getElementById('preview-article-btn');
+
+        // 初始化日期为今天
+        const today = new Date().toISOString().split('T')[0];
+        articleDate.value = today;
+
+        // 检查用户是否已登录
+        function checkLoggedIn() {
+            const token = localStorage.getItem('github_token');
+            const user = localStorage.getItem('github_user');
+            
+            if (token && user) {
+                showAppPage(JSON.parse(user));
+            }
+        }
+
+        // 显示登录页面
+        function showLoginPage() {
+            loginPage.classList.remove('hidden');
+            appPage.classList.add('hidden');
+        }
+
+        // 显示应用页面
+        function showAppPage(user) {
+            loginPage.classList.add('hidden');
+            appPage.classList.remove('hidden');
+            
+            // 更新用户信息
+            if (user.avatar_url) {
+                userAvatar.innerHTML = `<img src="${user.avatar_url}" alt="用户头像" class="w-full h-full object-cover">`;
+            }
+            if (user.name) {
+                userName.textContent = user.name;
+            } else if (user.login) {
+                userName.textContent = user.login;
+            }
+            
+            // 加载草稿
+            loadDraft();
+            
+            // 自动生成 slug
+            articleTitle.addEventListener('input', generateSlug);
+            generateSlug();
+        }
+
+        // 生成 URL 别名
+        function generateSlug() {
+            const title = articleTitle.value.trim();
+            if (!title) {
+                articleSlug.value = '';
+                return;
+            }
+            
+            // 转换为小写，移除特殊字符，用连字符连接
+            const slug = title
+                .normalize('NFKD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .trim()
+                .replace(/[-\s]+/g, '-');
+            
+            articleSlug.value = slug;
+        }
+
+        // 登录处理
+        function handleLogin() {
+            const authUrl = `${config.authUrl}?client_id=${config.clientId}&redirect_uri=${config.redirectUri}&scope=repo`;
+            window.location.href = authUrl;
+        }
+
+        // 登出处理
+        function handleLogout() {
+            localStorage.removeItem('github_token');
+            localStorage.removeItem('github_user');
+            showLoginPage();
+        }
+
+        // 处理授权回调
+        function handleAuthCallback() {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             
             if (code) {
-                // 隐藏登录页面，显示回调页面
-                loginContainer.classList.add('hidden');
-                callbackContainer.classList.remove('hidden');
+                // 显示加载状态
+                showLoading('正在验证身份', '正在连接到 GitHub...');
                 
-                // 用授权码换取访问令牌
-                exchangeCodeForToken(code);
-            } else {
-                // 检查本地存储中是否有访问令牌
-                const token = localStorage.getItem('github_token');
-                const userData = JSON.parse(localStorage.getItem('user_data'));
-                
-                if (token && userData) {
-                    // 有令牌，直接显示主页面
-                    showMainPage(userData);
-                    fetchUserStats(token);
-                    fetchUserRepositories(token);
-                    fetchUserActivities(token);
-                } else {
-                    // 没有令牌，显示登录页面
-                    showLoginPage();
-                }
-            }
-            
-            // 登录按钮事件
-            githubLoginBtn.addEventListener('click', function() {
-                const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user,repo`;
-                window.location.href = authUrl;
-            });
-            
-            // 登出按钮事件
-            logoutBtn.addEventListener('click', function() {
-                localStorage.removeItem('github_token');
-                localStorage.removeItem('user_data');
-                showLoginPage();
-            });
-            
-            // 滚动事件 - 导航栏效果
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 10) {
-                    navbar.classList.add('bg-white/95', 'backdrop-blur-sm');
-                    navbar.classList.remove('bg-white');
-                } else {
-                    navbar.classList.remove('bg-white/95', 'backdrop-blur-sm');
-                    navbar.classList.add('bg-white');
-                }
-            });
-        }
-        
-        // 显示登录页面
-        function showLoginPage() {
-            loginContainer.classList.remove('hidden');
-            mainContainer.classList.add('hidden');
-            callbackContainer.classList.add('hidden');
-        }
-        
-        // 显示主页面
-        function showMainPage(userData) {
-            loginContainer.classList.add('hidden');
-            mainContainer.classList.remove('hidden');
-            callbackContainer.classList.add('hidden');
-            
-            // 更新用户信息
-            currentUser.textContent = userData.login;
-            userAvatar.src = userData.avatar_url;
-            userAvatar.alt = `${userData.login} 的头像`;
-            welcomeUser.textContent = userData.name || userData.login;
-            welcomeAvatar.src = userData.avatar_url;
-            welcomeAvatar.alt = `${userData.login} 的头像`;
-            
-            // 显示用户信息
-            userInfo.classList.remove('hidden');
-        }
-        
-        // 用授权码换取访问令牌
-        async function exchangeCodeForToken(code) {
-            try {
-                const response = await fetch(`${apiBaseUrl}/exchange-token`, {
+                // 交换访问令牌
+                fetch(config.tokenUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ code })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.access_token && data.user) {
+                        // 保存令牌和用户信息
+                        localStorage.setItem('github_token', data.access_token);
+                        localStorage.setItem('github_user', JSON.stringify(data.user));
+                        
+                        // 隐藏加载状态
+                        hideLoading();
+                        
+                        // 显示应用页面
+                        showAppPage(data.user);
+                        
+                        // 从 URL 中移除 code 参数
+                        history.replaceState({}, document.title, window.location.pathname);
+                    } else {
+                        throw new Error('无法获取访问令牌');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showError('登录失败', error.message);
                 });
-                
-                const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
+            }
+        }
+
+        // 发布文章到 GitHub
+        function publishArticle() {
+            // 验证表单
+            if (!articleTitle.value.trim()) {
+                showError('发布失败', '请输入文章标题');
+                return;
+            }
+            
+            if (!articleContent.value.trim()) {
+                showError('发布失败', '请输入文章内容');
+                return;
+            }
+            
+            const selectedRepo = document.getElementById('github-repo').value;
+            if (!selectedRepo) {
+                showError('发布失败', '请选择 GitHub 仓库');
+                return;
+            }
+            
+            const selectedPath = document.getElementById('article-path').value;
+            if (!selectedPath) {
+                showError('发布失败', '请选择文章路径');
+                return;
+            }
+            
+            // 显示加载状态
+            showLoading('正在发布文章', '正在上传到 GitHub...');
+            
+            // 准备文章内容
+            const articleData = {
+                title: articleTitle.value,
+                slug: articleSlug.value || generateSlug(articleTitle.value),
+                date: articleDate.value,
+                tags: articleTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
+                content: articleContent.value
+            };
+            
+            // 创建 Markdown 内容
+            const markdownContent = `---
+title: "${articleData.title}"
+date: ${articleData.date}
+slug: ${articleData.slug}
+tags: [${articleData.tags.map(tag => `"${tag}"`).join(', ')}]
+---
+
+${articleData.content}
+`;
+            
+            // 准备提交到 GitHub 的数据
+            const githubData = {
+                repo: selectedRepo,
+                path: `content/${selectedPath}/${articleData.slug}.md`,
+                message: `Create new article: ${articleData.title}`,
+                content: btoa(unescape(encodeURIComponent(markdownContent))) // Base64 编码
+            };
+            
+            // 发送到 GitHub API
+            const token = localStorage.getItem('github_token');
+            
+            fetch('https://api.github.com/repos/USERNAME/' + githubData.repo + '/contents/' + githubData.path, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: githubData.message,
+                    content: githubData.content
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('GitHub API 返回错误: ' + response.status);
                 }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
                 
-                // 保存令牌和用户数据到本地存储
-                localStorage.setItem('github_token', data.access_token);
-                localStorage.setItem('user_data', JSON.stringify(data.user));
+                // 保存草稿
+                saveDraft();
                 
-                // 显示主页面
-                showMainPage(data.user);
+                // 显示成功消息
+                showSuccess('发布成功', '您的文章已成功发布到 GitHub');
                 
-                // 获取用户统计信息
-                fetchUserStats(data.access_token);
-                
-                // 获取用户仓库
-                fetchUserRepositories(data.access_token);
-                
-                // 获取用户活动
-                fetchUserActivities(data.access_token);
-                
-                // 移除URL中的授权码
-                history.replaceState(null, null, window.location.pathname);
-            } catch (error) {
-                console.error('Error exchanging code for token:', error);
-                loginError.classList.remove('hidden');
-                showLoginPage();
-            }
+                // 显示发布状态
+                publishStatus.classList.remove('hidden');
+                setTimeout(() => {
+                    publishStatus.classList.add('hidden');
+                }, 5000);
+            })
+            .catch(error => {
+                hideLoading();
+                showError('发布失败', error.message);
+            });
         }
-        
-        // 获取用户统计信息
-        async function fetchUserStats(token) {
-            try {
-                // 获取用户信息
-                const userResponse = await fetch('https://api.github.com/user', {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
-                
-                const userData = await userResponse.json();
-                
-                // 获取仓库数量
-                repoCount.textContent = userData.public_repos;
-                
-                // 获取关注者数量
-                followersCount.textContent = userData.followers;
-                
-                // 获取星标数量 (需要额外API调用)
-                const starredResponse = await fetch(`https://api.github.com/users/${userData.login}/starred`, {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
-                
-                const starredRepos = await starredResponse.json();
-                starsCount.textContent = starredRepos.length;
-                
-                // 设置贡献数量 (示例值)
-                contributionsCount.textContent = Math.floor(Math.random() * 50) + 50;
-            } catch (error) {
-                console.error('Error fetching user stats:', error);
-            }
-        }
-        
-        // 获取用户仓库
-        async function fetchUserRepositories(token) {
-            try {
-                const response = await fetch('https://api.github.com/user/repos?sort=updated', {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
-                
-                const repositories = await response.json();
-                
-                // 清空容器
-                repositoriesContainer.innerHTML = '';
-                
-                // 只显示前4个仓库
-                const reposToDisplay = repositories.slice(0, 4);
-                
-                reposToDisplay.forEach(repo => {
-                    const repoCard = document.createElement('div');
-                    repoCard.className = 'flex items-center p-4 rounded-lg hover:bg-gray-50 transition-all-300';
-                    
-                    repoCard.innerHTML = `
-                        <div class="flex-shrink-0 mr-4">
-                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <i class="fa fa-github text-primary"></i>
-                            </div>
-                        </div>
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start">
-                                <h3 class="font-medium text-gray-900">${repo.name}</h3>
-                                <span class="text-xs font-medium bg-green-100 text-green-800 px-2.5 py-0.5 rounded">
-                                    ${repo.language || '未知'}
-                                </span>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-1 line-clamp-1">${repo.description || '没有描述'}</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <div class="flex items-center mr-3">
-                                    <i class="fa fa-star mr-1"></i>
-                                    <span>${repo.stargazers_count}</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <i class="fa fa-code-fork mr-1"></i>
-                                    <span>${repo.forks_count}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    repositoriesContainer.appendChild(repoCard);
-                });
-            } catch (error) {
-                console.error('Error fetching user repositories:', error);
-            }
-        }
-        
-        // 获取用户活动
-        async function fetchUserActivities(token) {
-            try {
-                const response = await fetch('https://api.github.com/users/{username}/events/public', {
-                    headers: {
-                        'Authorization': `token ${token}`
-                    }
-                });
-                
-                const events = await response.json();
-                
-                // 清空容器
-                activitiesContainer.innerHTML = '';
-                
-                // 只显示前5个活动
-                const eventsToDisplay = events.slice(0, 5);
-                
-                eventsToDisplay.forEach(event => {
-                    let activityHtml = '';
-                    
-                    switch (event.type) {
-                        case 'PushEvent':
-                            const commits = event.payload.commits || [];
-                            const commitMessages = commits.map(commit => commit.message).join(', ');
-                            
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">推送了代码</span> 到 ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-500 mt-1">${commitMessages}</p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'CreateEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">创建了</span> ${event.payload.ref_type} ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'WatchEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-yellow-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">关注了</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'ForkEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-purple-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">分叉了</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        default:
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-gray-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">${event.type.replace('Event', '')}</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                    }
-                    
-                    const activityElement = document.createElement('div');
-                    activityElement.innerHTML = activityHtml;
-                    activitiesContainer.appendChild(activityElement);
-                });
-            } catch (error) {
-                console.error('Error fetching user activities:', error);
-                
-                // 添加默认活动数据
-                const defaultActivities = [
-                    { type: 'PushEvent', repo: { name: 'my-project' }, created_at: new Date(Date.now() - 3600000).toISOString() },
-                    { type: 'CreateEvent', repo: { name: 'new-repo' }, created_at: new Date(Date.now() - 7200000).toISOString() },
-                    { type: 'WatchEvent', repo: { name: 'awesome-library' }, created_at: new Date(Date.now() - 10800000).toISOString() },
-                    { type: 'ForkEvent', repo: { name: 'another-project' }, created_at: new Date(Date.now() - 14400000).toISOString() },
-                    { type: 'IssueCommentEvent', repo: { name: 'my-project' }, created_at: new Date(Date.now() - 18000000).toISOString() }
-                ];
-                
-                // 清空容器
-                activitiesContainer.innerHTML = '';
-                
-                defaultActivities.forEach(event => {
-                    let activityHtml = '';
-                    
-                    switch (event.type) {
-                        case 'PushEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">推送了代码</span> 到 ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'CreateEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-blue-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">创建了</span> ${event.payload ? event.payload.ref_type : '仓库'} ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'WatchEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-yellow-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">关注了</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        case 'ForkEvent':
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-purple-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">分叉了</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                            
-                        default:
-                            activityHtml = `
-                                <div class="relative pl-10">
-                                    <div class="absolute left-0 top-1 w-3 h-3 rounded-full bg-gray-500 border-2 border-white"></div>
-                                    <div class="ml-2">
-                                        <p class="text-sm text-gray-700">
-                                            <span class="font-medium">${event.type.replace('Event', '')}</span> ${event.repo.name}
-                                        </p>
-                                        <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(event.created_at)}</p>
-                                    </div>
-                                </div>
-                            `;
-                    }
-                    
-                    const activityElement = document.createElement('div');
-                    activityElement.innerHTML = activityHtml;
-                    activitiesContainer.appendChild(activityElement);
-                });
-            }
-        }
-        
-        // 格式化时间为"多久前"
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const date = new Date(timestamp);
-            const diff = now - date;
+
+        // 保存草稿
+        function saveDraft() {
+            const draft = {
+                title: articleTitle.value,
+                content: articleContent.value,
+                date: articleDate.value,
+                tags: articleTags.value,
+                timestamp: new Date().toISOString()
+            };
             
-            const seconds = Math.floor(diff / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
+            localStorage.setItem('article_draft', JSON.stringify(draft));
+        }
+
+        // 加载草稿
+        function loadDraft() {
+            const draft = localStorage.getItem('article_draft');
+            if (draft) {
+                const draftData = JSON.parse(draft);
+                articleTitle.value = draftData.title || '';
+                articleContent.value = draftData.content || '';
+                articleDate.value = draftData.date || today;
+                articleTags.value = draftData.tags || '';
+                
+                // 生成 slug
+                generateSlug();
+                
+                // 更新预览
+                updatePreview();
+            }
+        }
+
+        // 更新预览
+        function updatePreview() {
+            // 这里应该使用 Markdown 解析器将 Markdown 转换为 HTML
+            // 为简化示例，我们仅显示文本内容
+            const content = articleContent.value || '';
             
-            if (days > 0) {
-                return `${days} 天前`;
-            } else if (hours > 0) {
-                return `${hours} 小时前`;
-            } else if (minutes > 0) {
-                return `${minutes} 分钟前`;
+            // 简单的 Markdown 转 HTML 处理
+            let html = content
+                .replace(/# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/\*\*(.*)\*\*/gm, '<strong>$1</strong>')
+                .replace(/\*(.*)\*/gm, '<em>$1</em>')
+                .replace(/```([\s\S]*?)```/gm, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/gm, '<code>$1</code>')
+                .replace(/!\[(.*?)\]\((.*?)\)/gm, '<img src="$2" alt="$1" class="max-w-full rounded-lg shadow-md my-4">')
+                .replace(/\[(.*?)\]\((.*?)\)/gm, '<a href="$2" class="text-primary hover:underline">$1</a>')
+                .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic my-4">$1</blockquote>')
+                .replace(/\n{2,}/g, '<p></p>')
+                .replace(/\n/g, '<br>');
+            
+            articlePreview.innerHTML = html;
+        }
+
+        // 显示加载模态框
+        function showLoading(message, submessage) {
+            loadingMessage.textContent = message || '正在处理...';
+            loadingSubmessage.textContent = submessage || '请稍候...';
+            loadingModal.classList.remove('hidden');
+        }
+
+        // 隐藏加载模态框
+        function hideLoading() {
+            loadingModal.classList.add('hidden');
+        }
+
+        // 显示成功模态框
+        function showSuccess(message, submessage) {
+            successMessage.textContent = message || '操作成功';
+            successSubmessage.textContent = submessage || '';
+            successModal.classList.remove('hidden');
+            
+            // 添加动画效果
+            setTimeout(() => {
+                successModalContent.classList.remove('scale-95', 'opacity-0');
+                successModalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // 隐藏成功模态框
+        function hideSuccess() {
+            successModalContent.classList.remove('scale-100', 'opacity-100');
+            successModalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                successModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 显示错误模态框
+        function showError(message, submessage) {
+            errorModalMessage.textContent = message || '操作失败';
+            errorModalSubmessage.textContent = submessage || '';
+            errorModal.classList.remove('hidden');
+        }
+
+        // 隐藏错误模态框
+        function hideError() {
+            errorModal.classList.add('hidden');
+        }
+
+        // 事件监听器
+        githubLoginBtn.addEventListener('click', handleLogin);
+        logoutBtn.addEventListener('click', handleLogout);
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        publishArticleBtn.addEventListener('click', publishArticle);
+        saveDraftBtn.addEventListener('click', saveDraft);
+        mobileSaveDraftBtn.addEventListener('click', saveDraft);
+        successOkBtn.addEventListener('click', hideSuccess);
+        errorOkBtn.addEventListener('click', hideError);
+        
+        // 点击其他区域关闭下拉菜单
+        document.addEventListener('click', (event) => {
+            if (!userMenuBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+                userDropdown.classList.add('hidden');
+            }
+            
+            if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // 文章内容变化时更新预览
+        articleContent.addEventListener('input', updatePreview);
+        
+        // 预览文章按钮点击事件
+        previewArticleBtn.addEventListener('click', () => {
+            if (articleContent.value.trim()) {
+                updatePreview();
+                // 这里应该打开一个新窗口预览文章
+                alert('预览功能将在实际部署中实现');
             } else {
-                return `${seconds} 秒前`;
+                showError('预览失败', '文章内容不能为空');
             }
-        }
-        
-        // 初始化应用
-        document.addEventListener('DOMContentLoaded', init);
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 检查是否有授权码
+            handleAuthCallback();
+            
+            // 检查是否已登录
+            checkLoggedIn();
+            
+            // 设置日期默认值
+            articleDate.value = new Date().toISOString().split('T')[0];
+        });
     </script>
 </body>
 </html>    
