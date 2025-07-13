@@ -411,11 +411,26 @@
             
             // GitHub登录按钮点击事件
             document.getElementById('github-login-btn').addEventListener('click', function() {
+                // 显示加载状态
+                const loginButton = this;
+                const originalText = loginButton.innerHTML;
+                loginButton.innerHTML = '<i class="fa fa-circle-o-notch fa-spin"></i> 正在连接GitHub...';
+                loginButton.disabled = true;
+                
                 // 获取客户端ID的API
                 fetch('/api/config/github')
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`获取配置失败: ${response.status} ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         const clientId = data.clientId;
+                        if (!clientId) {
+                            throw new Error('无效的GitHub客户端ID');
+                        }
+                        
                         const redirectUri = encodeURIComponent(window.location.origin + '/api/auth/callback');
                         const scope = 'repo';
                         
@@ -423,9 +438,13 @@
                         window.location.href = authUrl;
                     })
                     .catch(error => {
-                        console.error('获取配置失败:', error);
-                        document.getElementById('login-error').textContent = '获取登录配置失败，请重试';
+                        console.error('获取GitHub配置失败:', error);
+                        document.getElementById('login-error').textContent = `登录失败: ${error.message}`;
                         document.getElementById('login-error').classList.remove('hidden');
+                        
+                        // 恢复按钮状态
+                        loginButton.innerHTML = originalText;
+                        loginButton.disabled = false;
                     });
             });
             
