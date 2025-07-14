@@ -648,7 +648,7 @@ header.bg-white {
             clientId: 'Ov23lifWj3tVjAX5tVG4',
             redirectUri: window.location.origin + '/admin/callback.html',
             authUrl: 'https://github.com/login/oauth/authorize',
-            tokenUrl: window.location.origin + '/admin/api/exchange-token'
+            tokenUrl: window.location.origin + '/api/exchange-token' // 动态获取当前域名
         };
 
         // DOM 元素
@@ -968,19 +968,12 @@ header.bg-white {
                     
                     console.log('开始交换访问令牌');
                     // 交换访问令牌
-                    // 使用 application/x-www-form-urlencoded 格式发送请求
-                    const formData = new URLSearchParams();
-                    formData.append('client_id', config.clientId);
-                    formData.append('code', code);
-                    formData.append('grant_type', 'authorization_code');
-                    formData.append('redirect_uri', config.redirectUri);
-                    
                     fetch(config.tokenUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
+                            'Content-Type': 'application/json'
                         },
-                        body: formData
+                        body: JSON.stringify({ code })
                     })
                     .then(response => {
                         console.log('令牌交换响应状态:', response.status);
@@ -1081,38 +1074,38 @@ header.bg-white {
 
             // 创建 Markdown 内容
             const markdownContent = `---
-title: "${articleData.title}"
-date: ${articleData.date}+08:00
-draft: ${articleData.draft}
-categories:
-  - ${articleData.categories.join('\n  - ')}
-tags:
-  - ${articleData.tags.join('\n  - ')}
-rating: ${articleData.rating}
-version: "${articleData.version}"
-size: "${articleData.size}"
-downloadCount: ${articleData.downloadCount}
-downloads:
-  official: "${articleData.downloads.official}"
-platforms: [${articleData.platforms.map(plat => "${plat}").join(', ')}]
-system_requirements:
-  Windows:
+    title: "${articleData.title}"
+    date: ${articleData.date}+08:00
+    draft: ${articleData.draft}
+    categories:
+    - ${articleData.categories.join('\n  - ')}
+    tags:
+    - ${articleData.tags.join('\n  - ')}
+    rating: ${articleData.rating}
+    version: "${articleData.version}"
+    size: "${articleData.size}"
+    downloadCount: ${articleData.downloadCount}
+    downloads:
+    official: "${articleData.downloads.official}"
+    platforms: [${articleData.platforms.map(plat => "${plat}").join(', ')}]
+    system_requirements:
+    Windows:
     ${articleData.systemRequirements.Windows?.map(req => `- ${req}`).join('\n    ')}
-  macOS:
+    macOS:
     ${articleData.systemRequirements.macOS?.map(req => `- ${req}`).join('\n    ')}
-  Linux:
+    Linux:
     ${articleData.systemRequirements.Linux?.map(req => `- ${req}`).join('\n    ')}
-changelog:
-  ${articleData.changelog.map(item => `- ${item}`).join('\n  ')}
-previous_versions:
-  ${articleData.previousVersions.map(version => `- version: "${version.version}"
+    changelog:
+    ${articleData.changelog.map(item => `- ${item}`).join('\n  ')}
+    previous_versions:
+    ${articleData.previousVersions.map(version => `- version: "${version.version}"
     date: ${version.date}
     changes:
-      ${version.changes.map(change => `- ${change}`).join('\n      ')}`).join('\n  ')}
----
+        ${version.changes.map(change => `- ${change}`).join('\n      ')}`).join('\n  ')}
+    ---
 
-${articleData.content}
-`;
+    ${articleData.content}
+    `;
             
             // 准备提交到 GitHub 的数据
             const githubData = {
