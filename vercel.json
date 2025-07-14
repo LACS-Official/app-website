@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
+      "source": "/admin/api/(.*)",
       "destination": "/admin/api/$1.js"
     },
     {

@@ -1,5 +1,8 @@
 // Vercel Serverless 函数：换取 GitHub 访问令牌
 export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
     const { code } = req.body;
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
