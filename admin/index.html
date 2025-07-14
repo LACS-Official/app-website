@@ -648,7 +648,7 @@ header.bg-white {
             clientId: 'Ov23lifWj3tVjAX5tVG4',
             redirectUri: window.location.origin + '/admin/callback.html',
             authUrl: 'https://github.com/login/oauth/authorize',
-            tokenUrl: 'https://app.lacs.cc/admin/api/exchange-token'
+            tokenUrl: window.location.origin + '/admin/api/exchange-token'
         };
 
         // DOM 元素
@@ -968,12 +968,19 @@ header.bg-white {
                     
                     console.log('开始交换访问令牌');
                     // 交换访问令牌
+                    // 使用 application/x-www-form-urlencoded 格式发送请求
+                    const formData = new URLSearchParams();
+                    formData.append('client_id', config.clientId);
+                    formData.append('code', code);
+                    formData.append('grant_type', 'authorization_code');
+                    formData.append('redirect_uri', config.redirectUri);
+                    
                     fetch(config.tokenUrl, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/x-www-form-urlencoded'
                         },
-                        body: JSON.stringify({ code })
+                        body: formData
                     })
                     .then(response => {
                         console.log('令牌交换响应状态:', response.status);
