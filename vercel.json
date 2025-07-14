@@ -3,6 +3,10 @@
     {
       "source": "/admin/(.*)",
       "destination": "/admin/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/admin/api/$1"
     }
   ],
   "build": {
