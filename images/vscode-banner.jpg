@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <!-- 背景 -->
+  <rect width="1200" height="400" fill="#1e1e1e"/>
+  
+  <!-- VS Code图标 -->
+  <g transform="translate(100, 100) scale(2)">
+    <!-- 外框 -->
+    <path d="M 95 2.39 L 2.5 37.5 v 75 l 92.5 35.11 l 75 -35.11 V 37.5 L 95 2.39 z" fill="#2c2c32"/>
+    
+    <!-- 蓝色部分 -->
+    <path d="M 75 26.39 v 80 l -55 -40 l 55 -40 z" fill="#0065a9"/>
+    <path d="M 20 66.39 l 55 40 v 40 l -55 -40 v -40 z" fill="#007acc"/>
+    <path d="M 75 146.39 l 75 -40 v -80 l -75 40 v 80 z" fill="#1f9cf0"/>
+  </g>
+  
+  <!-- 文字 -->
+  <text x="350" y="150" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#ffffff">Visual Studio Code</text>
+  <text x="350" y="220" font-family="Arial, sans-serif" font-size="30" fill="#cccccc">代码编辑器 · 开源 · 跨平台</text>
+  
+  <!-- 装饰线条 -->
+  <path d="M 350 170 h 700" stroke="#0065a9" stroke-width="3"/>
+  
+  <!-- 特性图标和文字 -->
+  <g transform="translate(350, 250)">
+    <circle cx="25" cy="25" r="20" fill="#0065a9"/>
+    <text x="60" y="32" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">智能代码补全</text>
+  </g>
+  
+  <g transform="translate(600, 250)">
+    <circle cx="25" cy="25" r="20" fill="#0065a9"/>
+    <text x="60" y="32" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">丰富的扩展生态</text>
+  </g>
+  
+  <g transform="translate(850, 250)">
+    <circle cx="25" cy="25" r="20" fill="#0065a9"/>
+    <text x="60" y="32" font-family="Arial, sans-serif" font-size="24" fill="#ffffff">内置Git支持</text>
+  </g>
+  
+  <!-- 底部装饰 -->
+  <rect x="0" y="350" width="1200" height="50" fill="#0065a9"/>
+</svg>
