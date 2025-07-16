@@ -1,8 +1,16 @@
 // Vercel Serverless 函数：换取 GitHub 访问令牌
 export default async function handler(req, res) {
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
+    // 必须每次请求都加 CORS 头
+    res.setHeader('Access-Control-Allow-Origin', 'https://app.lacs.cc');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // 处理预检请求
+    if (req.method === 'OPTIONS') {
+        res.status(200).end(); // 这里必须返回 200，不能是 204
+        return;
     }
+
     const { code } = req.body;
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
@@ -44,4 +52,4 @@ export default async function handler(req, res) {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}    
+}
