@@ -76,7 +76,7 @@
 &lt;h3 id="自定义设置">自定义设置&lt;/h3>
 &lt;p>VS Code提供了丰富的自定义选项，你可以通过&lt;code>settings.json&lt;/code>文件来配置：&lt;/p></description></item><item><title>Visual Studio Code</title><link>https://app.lacs.cc/software/visual-studio-code/</link><pubDate>Tue, 15 Aug 2023 14:30:00 +0800</pubDate><guid>https://app.lacs.cc/software/visual-studio-code/</guid><description>&lt;h1 id="visual-studio-code-简介">Visual Studio Code 简介&lt;/h1>
 &lt;p>Visual Studio Code（简称VS Code）是由微软开发的一款免费、开源的现代化轻量级代码编辑器。它支持几乎所有主流的编程语言，并内置了对JavaScript、TypeScript和Node.js的支持，以及丰富的其他语言扩展生态系统。&lt;/p>
-&lt;h2 id="为什么选择vs-code">为什么选择VS Code？&lt;/h2>
+&lt;h2 id="为什么选择vs-code">为什么选择VS Code&lt;/h2>
 &lt;p>VS Code已经成为全球开发者最受欢迎的代码编辑器之一，这里有几个你应该选择它的理由：&lt;/p>
 &lt;ul>
 &lt;li>&lt;strong>轻量且强大&lt;/strong>：启动迅速，占用资源少，但功能不输给完整的IDE&lt;/li>
@@ -149,5 +149,5 @@
 &lt;li>&lt;code>F12&lt;/code>：转到定义&lt;/li>
 &lt;li>&lt;code>Alt+F12&lt;/code>：查看定义&lt;/li>
 &lt;/ul>
-&lt;h3 id="自定义设置">自定义设置&lt;/h3>
-&lt;p>VS Code提供了丰富的自定义选项，你可以通过&lt;code>settings.json&lt;/code>文件来配置：&lt;/p></description></item></channel></rss>
+&lt;h3 id="工作区和多项目管理">工作区和多项目管理&lt;/h3>
+&lt;p>VS Code的工作区功能允许你同时处理多个项目：&lt;/p></description></item></channel></rss>
