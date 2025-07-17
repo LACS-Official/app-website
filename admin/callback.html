@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Github授权</title>
+</head>
+<body>
+    <p>正在处理授权...</p>
+
+    <script>
+        // 从 URL 参数中获取授权码或错误信息
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const error = params.get('error');
+        const errorDescription = params.get('error_description');
+
+        // 构建重定向 URL 参数
+        const redirectParams = new URLSearchParams();
+        if (code) redirectParams.append('code', code);
+        if (error) redirectParams.append('error', error);
+        if (errorDescription) redirectParams.append('error_description', errorDescription);
+
+        // 重定向到主页面处理授权
+        window.location.href = `/admin/index.html${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+    </script>
+</body>
+</html>

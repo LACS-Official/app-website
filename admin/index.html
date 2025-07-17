@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>领创软件资源管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#0F172A',
+                        accent: '#0EA5E9',
+                        neutral: '#64748B',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .editor-shadow {
+            box-shadow: 0 4px 20px rgba(22, 93, 255, 0.12);
+            border: 1px solid rgba(22, 93, 255, 0.1);
+        }
+
+        /* 科技感样式增强 */
+        .form-input:focus {
+            border-color: #0EA5E9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .bg-tech {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+header.bg-white {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(90deg, #0EA5E9, #3B82F6);
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(22, 93, 255, 0.15);
+        }
+            .transition-height {
+                transition: max-height 0.3s ease-in-out;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <!-- 登录页面 -->
+    <div id="login-page" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-auto transform transition-all duration-300 hover:shadow-xl">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <i class="fa fa-github text-primary text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">领创软件资源管理系统</h2>
+                <p class="text-gray-500 mt-2">使用 GitHub 账户登录以发布文章</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="github-login-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-md hover:shadow-lg">
+                    <i class="fa fa-github mr-2"></i>
+                    使用 GitHub 登录
+                </button>
+                
+                <div class="relative flex items-center my-4">
+                    <div class="flex-grow border-t border-gray-200"></div>
+                    <span class="flex-shrink mx-4 text-gray-500">或</span>
+                    <div class="flex-grow border-t border-gray-200"></div>
+                </div>
+                
+                <div id="login-error" class="hidden bg-danger/10 border border-danger/30 text-danger px-4 py-3 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fa fa-exclamation-circle mr-2"></i>
+                        <span id="error-message">登录失败，请重试</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-gray-500 text-sm">
+                <p>登录即表示您同意我们的 <a href="#" class="text-primary hover:underline">服务条款</a> 和 <a href="#" class="text-primary hover:underline">隐私政策</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用页面 (默认隐藏) -->
+    <div id="app-page" class="hidden flex flex-col min-h-screen">
+        <!-- 顶部导航栏 -->
+        <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+            <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <i class="fa fa-github text-primary text-xl mr-2"></i>
+                        <h1 class="text-xl font-bold text-gray-900">Hugo 文章发布工具</h1>
+                    </div>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">仪表盘</a>
+                        <a href="#" class="text-primary border-b-2 border-primary pb-1 font-medium">新建文章</a>
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">文章列表</a>
+                        <a href="#" class="text-gray-700 hover:text-primary transition-colors duration-200 font-medium">设置</a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="save-draft-btn" class="hidden md:flex items-center px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors duration-200">
+                        <i class="fa fa-save mr-1.5"></i> 保存草稿
+                    </button>
+                    
+                    <div class="relative">
+                        <button id="user-menu-btn" class="flex items-center space-x-2">
+                            <div id="user-avatar" class="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+                                <img src="https://picsum.photos/200/200" alt="用户头像" class="w-full h-full object-cover">
+                            </div>
+                            <span id="user-name" class="hidden md:inline text-sm font-medium text-gray-700">用户名</span>
+                            <i class="fa fa-caret-down text-gray-500 text-xs"></i>
+                        </button>
+                        
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa fa-user mr-2"></i> 个人资料
+                            </a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fa fa-cog mr-2"></i> 设置
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-danger hover:bg-gray-100">
+                                <i class="fa fa-sign-out mr-2"></i> 退出登录
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-700 hover:text-primary">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端菜单 (默认隐藏) -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-gray-100 py-2 px-4">
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">仪表盘</a>
+                <a href="#" class="block py-2 text-primary font-medium">新建文章</a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">文章列表</a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary">设置</a>
+                <div class="border-t border-gray-100 my-2"></div>
+                <button id="mobile-save-draft-btn" class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors duration-200">
+                    <i class="fa fa-save mr-1.5"></i> 保存草稿
+                </button>
+            </div>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- 页面标题 -->
+            <div class="mb-6">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-900">新建文章</h2>
+                <p class="text-gray-500 mt-1">撰写并发布您的 Hugo 博客文章</p>
+            </div>
+            
+            <!-- 文章编辑器 -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden editor-shadow">
+                <div class="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="粗体">
+                            <i class="fa fa-bold"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="斜体">
+                            <i class="fa fa-italic"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="链接">
+                            <i class="fa fa-link"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="图片">
+                            <i class="fa fa-image"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="列表">
+                            <i class="fa fa-list-ul"></i>
+                        </button>
+                        <div class="border-l border-gray-300 h-5 mx-1"></div>
+                        <button class="text-gray-500 hover:text-gray-700 p-1.5 rounded hover:bg-gray-100" title="预览">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <div class="relative">
+                            <select id="github-repo" class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="">选择 GitHub 仓库</option>
+                                <option value="appwebsite-hugo">appwebsite-hugo</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <i class="fa fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <select id="article-path" class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="">选择文章路径</option>
+                                <option value="software">content/software</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                <i class="fa fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- 文章元数据 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="article-title" class="block text-sm font-medium text-gray-700 mb-1">文章标题</label>
+                            <input type="text" id="article-title" placeholder="输入文章标题" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 shadow-sm focus:shadow-md">
+                        </div>
+                        
+                        <div>
+                            <label for="article-slug" class="block text-sm font-medium text-gray-700 mb-1">URL 别名</label>
+                            <input type="text" id="article-slug" placeholder="自动生成" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200" readonly>
+                        </div>
+                        
+                        <div>
+                             <label for="article-date" class="block text-sm font-medium text-gray-700 mb-1">发布日期</label>
+                            <div class="flex space-x-2">
+                                <input type="datetime-local" id="article-date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                <button id="set-current-time" class="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors" onclick="document.getElementById('article-date').value = new Date().toISOString().slice(0, 16);">
+                                    <i class="fa fa-clock-o"></i> 一键填写当前时间
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="article-tags" class="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                            <input type="text" id="article-tags" placeholder="标签1, 标签2, 标签3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-categories" class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                            <input type="text" id="article-categories" placeholder="分类1, 分类2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-version" class="block text-sm font-medium text-gray-700 mb-1">版本</label>
+                            <input type="text" id="article-version" placeholder="1.0.0" value="1.0.0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-official-website" class="block text-sm font-medium text-gray-700 mb-1">官方网站</label>
+                            <input type="url" id="article-official-website" placeholder="https://code.visualstudio.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-rating" class="block text-sm font-medium text-gray-700 mb-1">评分</label>
+                            <input type="number" id="article-rating" min="1" max="5" step="0.5" placeholder="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-draft" class="block text-sm font-medium text-gray-700 mb-1">草稿状态</label>
+                            <input type="checkbox" id="article-draft" class="mt-1 rounded text-primary focus:ring-primary/50">
+                        </div>
+                        <div>
+                            <label for="article-size" class="block text-sm font-medium text-gray-700 mb-1">软件大小</label>
+                            <input type="text" id="article-size" placeholder="85MB" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-downloadCount" class="block text-sm font-medium text-gray-700 mb-1">下载次数</label>
+                            <input type="number" id="article-downloadCount" placeholder="5000000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-platforms" class="block text-sm font-medium text-gray-700 mb-1">支持平台</label>
+                            <input type="text" id="article-platforms" placeholder="Windows, macOS, Linux" value="Windows" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div class="col-span-1 md:col-span-2 mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700">系统要求</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="show-system-requirements" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div id="system-requirements-fields" class="hidden grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Windows</label>
+                                    <div class="space-y-2" id="windows-requirements">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" placeholder="系统要求项" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg">
+                                            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="mt-2 text-sm text-primary" onclick="addRequirementField('windows-requirements')">
+                                        <i class="fa fa-plus"></i> 添加要求
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">macOS</label>
+                                    <div class="space-y-2" id="macos-requirements">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" placeholder="系统要求项" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg">
+                                            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="mt-2 text-sm text-primary" onclick="addRequirementField('macos-requirements')">
+                                        <i class="fa fa-plus"></i> 添加要求
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Linux</label>
+                                    <div class="space-y-2" id="linux-requirements">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" placeholder="系统要求项" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg">
+                                            <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                                                <i class="fa fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="mt-2 text-sm text-primary" onclick="addRequirementField('linux-requirements')">
+                                        <i class="fa fa-plus"></i> 添加要求
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700">更新日志</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="show-changelog" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div id="changelog-fields" class="hidden p-4 bg-gray-50 rounded-lg">
+                                <div class="space-y-2" id="changelog-items">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="text" placeholder="更新内容" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg">
+                                        <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" class="mt-2 text-sm text-primary" onclick="addChangelogItem()">
+                                    <i class="fa fa-plus"></i> 添加更新项
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-sm font-medium text-gray-700">历史版本</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="show-previous-versions" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div id="previous-versions-fields" class="hidden p-4 bg-gray-50 rounded-lg">
+                                <div class="space-y-4" id="version-history">
+                                    <div class="p-3 border border-gray-200 rounded-lg">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                                            <div>
+                                                <label class="block text-xs text-gray-500 mb-1">版本号</label>
+                                                <input type="text" placeholder="1.79.0" class="w-full px-3 py-2 border border-gray-300 rounded-lg version-number">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs text-gray-500 mb-1">发布日期</label>
+                                                <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg version-date">
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2 version-changes">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" placeholder="更新内容" class="flex-grow px-3 py-2 border border-gray-300 rounded-lg">
+                                                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between mt-2">
+                                            <button type="button" class="text-sm text-primary" onclick="addVersionChange(this)">
+                                                <i class="fa fa-plus"></i> 添加更新项
+                                            </button>
+                                            <button type="button" class="text-sm text-danger" onclick="this.closest('.border').remove()">
+                                                <i class="fa fa-trash"></i> 删除版本
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="mt-2 text-sm text-primary" onclick="addPreviousVersion()">
+                                    <i class="fa fa-plus"></i> 添加历史版本
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-span-1 md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">下载链接</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="article-official-download" class="block text-xs text-gray-500 mb-1">官方下载</label>
+                                    <input type="url" id="article-official-download" placeholder="https://code.visualstudio.com/download" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="article-quark-download" class="block text-xs text-gray-500 mb-1">夸克网盘</label>
+                                    <input type="url" id="article-quark-download" placeholder="https://example.com/vscode-quark" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="article-netdisk-download" class="block text-xs text-gray-500 mb-1">普通网盘</label>
+                                    <input type="url" id="article-netdisk-download" placeholder="http://example.com/vscode-123" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="article-baidu-download" class="block text-xs text-gray-500 mb-1">百度网盘</label>
+                                    <input type="url" id="article-baidu-download" placeholder="https://pan.baidu.com/s/1vscode_example" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="article-thunder-download" class="block text-xs text-gray-500 mb-1">迅雷下载</label>
+                                    <input type="url" id="article-thunder-download" placeholder="thunder://example.com/vscode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                                <div>
+                                    <label for="article-thunder-download" class="block text-xs text-gray-500 mb-1">迅雷下载</label>
+                                    <input type="text" id="article-thunder-download" placeholder="thunder://example.com/vscode" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="article-official-website" class="block text-sm font-medium text-gray-700 mb-1">官方网站</label>
+                            <input type="url" id="article-official-website" placeholder="https://code.visualstudio.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div>
+                            <label for="article-image" class="block text-sm font-medium text-gray-700 mb-1">图片路径</label>
+                            <input type="text" id="article-image" placeholder="/images/vscode-banner.jpg" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">历史版本</label>
+                            <div id="previous-versions-container" class="space-y-4">
+                                <div class="p-3 border border-gray-200 rounded-lg bg-gray-50 previous-version-item">
+                                    <div class="flex justify-between items-center mb-3">
+                                        <h4 class="font-medium text-gray-800">版本信息</h4>
+                                        <button type="button" class="remove-version-btn text-gray-400 hover:text-danger">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                        <div>
+                                            <label for="version-0" class="block text-xs text-gray-500 mb-1">版本号</label>
+                                            <input type="text" id="version-0" placeholder="1.79.0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                        </div>
+                                        <div>
+                                            <label for="date-0" class="block text-xs text-gray-500 mb-1">发布日期</label>
+                                            <input type="date" id="date-0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">更新内容</label>
+                                        <div class="space-y-2 changes-container">
+                                            <div class="flex items-center">
+                                                <input type="text" placeholder="添加了新的主题选项" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                                <button type="button" class="add-change-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                                    <i class="fa fa-plus text-gray-500"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="add-version-btn" class="mt-3 px-4 py-2 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors duration-200 flex items-center justify-center w-full">
+                                <i class="fa fa-plus mr-2"></i> 添加版本
+                            </button>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">系统要求</label>
+                            <div class="space-y-4">
+                                <div class="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                    <h4 class="font-medium text-gray-800 mb-2">Windows</h4>
+                                    <div class="space-y-2 system-reqs-windows">
+                                        <div class="flex items-center">
+                                            <input type="text" placeholder="Windows 10 或更高版本（64位）" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                            <button type="button" class="add-req-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                                <i class="fa fa-plus text-gray-500"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                    <h4 class="font-medium text-gray-800 mb-2">macOS</h4>
+                                    <div class="space-y-2 system-reqs-macos">
+                                        <div class="flex items-center">
+                                            <input type="text" placeholder="macOS 10.15 Catalina或更高版本" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                            <button type="button" class="add-req-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                                <i class="fa fa-plus text-gray-500"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                                    <h4 class="font-medium text-gray-800 mb-2">Linux</h4>
+                                    <div class="space-y-2 system-reqs-linux">
+                                        <div class="flex items-center">
+                                            <input type="text" placeholder="Ubuntu 16.04, Debian 9或更高版本" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                            <button type="button" class="add-req-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                                <i class="fa fa-plus text-gray-500"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" id="article-system-requirements" value="{}">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="article-changelog" class="block text-sm font-medium text-gray-700 mb-1">更新日志 (每行一项)</label>
+                            <textarea id="article-changelog" rows="3" placeholder="改进了远程开发体验
+增强了AI辅助编码功能
+优化了性能和内存使用" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- 文章内容编辑器 -->
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="w-full md:w-1/2">
+                            <label for="article-content" class="block text-sm font-medium text-gray-700 mb-1">文章内容 (Markdown)</label>
+                            <textarea id="article-content" rows="20" placeholder="开始撰写您的文章..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors duration-200 resize-none"></textarea>
+                        </div>
+                        
+                        <div class="w-full md:w-1/2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">预览</label>
+                            <div id="article-preview" class="w-full min-h-[320px] px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 overflow-auto">
+                                <div class="text-gray-400 italic text-center pt-10">
+                                    <i class="fa fa-file-text-o text-3xl mb-2"></i>
+                                    <p>预览将显示在这里</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50">
+                    <div id="publish-status" class="hidden text-sm text-success flex items-center">
+                        <i class="fa fa-check-circle mr-1.5"></i>
+                        <span>文章已保存到 GitHub</span>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button id="preview-article-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200 flex items-center">
+                            <i class="fa fa-external-link mr-1.5"></i> 预览文章
+                        </button>
+                        
+                        <button id="publish-article-btn" class="px-6 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-all duration-300 shadow hover:shadow-md flex items-center">
+                            <i class="fa fa-paper-plane mr-1.5"></i> 发布到 GitHub
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="bg-white border-t border-gray-200 py-6">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mb-4 md:mb-0">
+                        <p class="text-gray-500 text-sm">© 2025 Hugo 文章发布工具. 保留所有权利.</p>
+                    </div>
+                    
+                    <div class="flex space-x-6">
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
+                            <i class="fa fa-github text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
+                            <i class="fa fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-500 hover:text-primary transition-colors duration-200">
+                            <i class="fa fa-envelope text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 加载中模态框 (默认隐藏) -->
+    <div id="loading-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex items-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mr-4"></div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900" id="loading-message">正在处理...</h3>
+                    <p class="text-gray-500 mt-1" id="loading-submessage">请稍候...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功提示模态框 (默认隐藏) -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full transform transition-all duration-300 scale-95 opacity-0" id="success-modal-content">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success/10 mb-4">
+                    <i class="fa fa-check text-success text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900" id="success-message">操作成功</h3>
+                <p class="text-gray-500 mt-2" id="success-submessage">您的文章已成功发布到 GitHub</p>
+                <div class="mt-6">
+                    <button id="success-ok-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误提示模态框 (默认隐藏) -->
+    <div id="error-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-danger/10 mb-4">
+                    <i class="fa fa-times text-danger text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900" id="error-modal-message">操作失败</h3>
+                <p class="text-gray-500 mt-2" id="error-modal-submessage">发生了错误，请重试</p>
+                <div class="mt-6">
+                    <button id="error-ok-btn" class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg transition-all duration-300">
+                        确定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 配置信息
+        const config = {
+            clientId: 'Ov23lifWj3tVjAX5tVG4',
+            redirectUri: window.location.origin + '/admin/callback.html',
+            authUrl: 'https://github.com/login/oauth/authorize',
+            tokenUrl: 'https://app.lacs.cc/admin/api/exchange-token'
+        };
+
+        // DOM 元素
+        const loginPage = document.getElementById('login-page');
+        const appPage = document.getElementById('app-page');
+        const githubLoginBtn = document.getElementById('github-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const loadingModal = document.getElementById('loading-modal');
+        const loadingMessage = document.getElementById('loading-message');
+        const loadingSubmessage = document.getElementById('loading-submessage');
+        const successModal = document.getElementById('success-modal');
+        const successModalContent = document.getElementById('success-modal-content');
+        const successMessage = document.getElementById('success-message');
+        const successSubmessage = document.getElementById('success-submessage');
+        const successOkBtn = document.getElementById('success-ok-btn');
+        const errorModal = document.getElementById('error-modal');
+        const errorModalMessage = document.getElementById('error-modal-message');
+        const errorModalSubmessage = document.getElementById('error-modal-submessage');
+        const errorOkBtn = document.getElementById('error-ok-btn');
+        const articleTitle = document.getElementById('article-title');
+        const articleSlug = document.getElementById('article-slug');
+        const articleContent = document.getElementById('article-content');
+        const articlePreview = document.getElementById('article-preview');
+        const articleDate = document.getElementById('article-date');
+        const articleTags = document.getElementById('article-tags');
+        const publishArticleBtn = document.getElementById('publish-article-btn');
+        const publishStatus = document.getElementById('publish-status');
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        const mobileSaveDraftBtn = document.getElementById('mobile-save-draft-btn');
+        const previewArticleBtn = document.getElementById('preview-article-btn');
+
+        // 初始化日期为今天
+        const today = new Date().toISOString().split('T')[0];
+        articleDate.value = today;
+
+        // 检查用户是否已登录
+        function checkLoggedIn() {
+            console.log('开始检查登录状态');
+            const token = localStorage.getItem('github_token');
+            const userStr = localStorage.getItem('github_user');
+            
+            console.log('localStorage内容:', { hasToken: !!token, hasUser: !!userStr });
+            
+            if (token && userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    console.log('解析用户信息成功:', user);
+                    showAppPage(user);
+                } catch (e) {
+                    console.error('解析用户信息失败:', e);
+                    localStorage.removeItem('github_user');
+                    localStorage.removeItem('github_token');
+                    showLoginPage();
+                }
+            } else {
+                console.log('未找到有效的登录信息，显示登录页面');
+                showLoginPage();
+            }
+        }
+
+        // 显示登录页面
+        function showLoginPage() {
+            loginPage.classList.remove('hidden');
+            appPage.classList.add('hidden');
+        }
+
+        // 显示应用页面
+        function showAppPage(user) {
+            if (!user) {
+                showLoginPage();
+                return;
+            }
+            loginPage.classList.add('hidden');
+            appPage.classList.remove('hidden');
+            
+            // 更新用户信息
+            if (user.avatar_url) {
+                userAvatar.innerHTML = `<img src="${user.avatar_url}" alt="用户头像" class="w-full h-full object-cover">`;
+            } else {
+                userAvatar.innerHTML = '';
+            }
+            if (user.name) {
+                userName.textContent = user.name;
+            } else if (user.login) {
+                userName.textContent = user.login;
+            } else {
+                userName.textContent = '未知用户';
+            }
+            
+            // 加载草稿
+            loadDraft();
+            
+            // 自动生成 slug
+            articleTitle.addEventListener('input', generateSlug);
+            generateSlug();
+        }
+
+        // 获取历史版本
+            function getPreviousVersions() {
+                const versions = [];
+                const versionItems = document.querySelectorAll('.previous-version-item');
+                
+                versionItems.forEach((item, index) => {
+                    const version = item.querySelector(`input[id^='version-']`).value.trim();
+                    const date = item.querySelector(`input[id^='date-']`).value.trim();
+                    const changes = [];
+                    
+                    item.querySelectorAll('.changes-container input').forEach(input => {
+                        if (input.value.trim()) changes.push(input.value.trim());
+                    });
+                    
+                    if (version && date) {
+                        versions.push({
+                            version,
+                            date,
+                            changes
+                        });
+                    }
+                });
+                
+                return versions;
+            }
+            
+            // 获取系统要求
+            function getSystemRequirements() {
+                const requirements = {
+                    Windows: [],
+                    macOS: [],
+                    Linux: []
+                };
+                
+                // 收集Windows要求
+                document.querySelectorAll('.system-reqs-windows input').forEach(input => {
+                    if (input.value.trim()) requirements.Windows.push(input.value.trim());
+                });
+                
+                // 收集macOS要求
+                document.querySelectorAll('.system-reqs-macos input').forEach(input => {
+                    if (input.value.trim()) requirements.macOS.push(input.value.trim());
+                });
+                
+                // 收集Linux要求
+                document.querySelectorAll('.system-reqs-linux input').forEach(input => {
+                    if (input.value.trim()) requirements.Linux.push(input.value.trim());
+                });
+                
+                return requirements;
+            }
+            
+            // 添加系统要求输入框
+            document.addEventListener('click', function(e) {
+                // 添加系统要求
+                if (e.target.closest('.add-req-btn')) {
+                    const btn = e.target.closest('.add-req-btn');
+                    const container = btn.parentElement.parentElement;
+                    const newInput = document.createElement('div');
+                    newInput.className = 'flex items-center';
+                    newInput.innerHTML = `
+                        <input type="text" placeholder="输入系统要求..." class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <button type="button" class="remove-req-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(newInput);
+                }
+                // 删除系统要求
+                else if (e.target.closest('.remove-req-btn')) {
+                    const btn = e.target.closest('.remove-req-btn');
+                    const inputGroup = btn.parentElement;
+                    if (inputGroup.parentElement.children.length > 1) {
+                        inputGroup.remove();
+                    }
+                }
+                // 添加版本
+                else if (e.target.closest('#add-version-btn')) {
+                    const container = document.getElementById('previous-versions-container');
+                    const versionCount = container.children.length;
+                    const newVersion = document.createElement('div');
+                    newVersion.className = 'p-3 border border-gray-200 rounded-lg bg-gray-50 previous-version-item';
+                    newVersion.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-medium text-gray-800">版本信息</h4>
+                            <button type="button" class="remove-version-btn text-gray-400 hover:text-danger">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <label for="version-${versionCount}" class="block text-xs text-gray-500 mb-1">版本号</label>
+                                <input type="text" id="version-${versionCount}" placeholder="1.78.0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            </div>
+                            <div>
+                                <label for="date-${versionCount}" class="block text-xs text-gray-500 mb-1">发布日期</label>
+                                <input type="date" id="date-${versionCount}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">更新内容</label>
+                            <div class="space-y-2 changes-container">
+                                <div class="flex items-center">
+                                    <input type="text" placeholder="增强了Git集成" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                    <button type="button" class="add-change-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                        <i class="fa fa-plus text-gray-500"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(newVersion);
+                }
+                // 删除版本
+                else if (e.target.closest('.remove-version-btn')) {
+                    const btn = e.target.closest('.remove-version-btn');
+                    const versionItem = btn.closest('.previous-version-item');
+                    const container = document.getElementById('previous-versions-container');
+                    if (container.children.length > 1) {
+                        versionItem.remove();
+                    } else {
+                        // 保留至少一个版本，并清空内容
+                        versionItem.querySelector(`input[id^='version-']`).value = '';
+                        versionItem.querySelector(`input[id^='date-']`).value = '';
+                        const changesContainer = versionItem.querySelector('.changes-container');
+                        changesContainer.innerHTML = `
+                            <div class="flex items-center">
+                                <input type="text" placeholder="添加了新的主题选项" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                                <button type="button" class="add-change-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                                    <i class="fa fa-plus text-gray-500"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+                // 添加变更
+                else if (e.target.closest('.add-change-btn')) {
+                    const btn = e.target.closest('.add-change-btn');
+                    const container = btn.parentElement.parentElement;
+                    const newChange = document.createElement('div');
+                    newChange.className = 'flex items-center';
+                    newChange.innerHTML = `
+                        <input type="text" placeholder="改进了调试体验" class="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
+                        <button type="button" class="remove-change-btn bg-gray-100 hover:bg-gray-200 px-3 py-2 border border-l-0 border-gray-300 rounded-r-lg">
+                            <i class="fa fa-minus text-gray-500"></i>
+                        </button>
+                    `;
+                    container.appendChild(newChange);
+                }
+                // 删除变更
+                else if (e.target.closest('.remove-change-btn')) {
+                    const btn = e.target.closest('.remove-change-btn');
+                    const changeItem = btn.parentElement;
+                    const container = changeItem.parentElement;
+                    if (container.children.length > 1) {
+                        changeItem.remove();
+                    }
+                }
+            });
+            
+            // 生成 URL 别名
+            function generateSlug() {
+                const title = articleTitle.value.trim();
+                if (!title) {
+                    articleSlug.value = '';
+                    return;
+                }
+                
+                // 转换为小写，移除特殊字符，用连字符连接
+                const slug = title
+                    .normalize('NFKD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '')
+                    .trim()
+                    .replace(/[-\s]+/g, '-');
+                
+                articleSlug.value = slug;
+            }
+
+        // 登录处理
+        function handleLogin() {
+            const authUrl = `${config.authUrl}?client_id=${config.clientId}&redirect_uri=${config.redirectUri}&scope=repo`;
+            window.location.href = authUrl;
+        }
+
+        // 登出处理
+        function handleLogout() {
+            localStorage.removeItem('github_token');
+            localStorage.removeItem('github_user');
+            showLoginPage();
+        }
+
+        // 处理授权回调
+        function handleAuthCallback() {
+            console.log('开始处理授权回调');
+            return new Promise((resolve, reject) => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                const error = urlParams.get('error');
+                
+                console.log('URL参数:', { code: !!code, error });
+                
+                if (error) {
+                    console.error('授权错误:', urlParams.get('error_description') || error);
+                    showError('授权失败', urlParams.get('error_description') || '未知授权错误');
+                    resolve();
+                    return;
+                }
+                
+                if (code) {
+                    // 显示加载状态
+                    showLoading('正在验证身份', '正在连接到 GitHub...');
+                    
+                    console.log('开始交换访问令牌');
+                    // 交换访问令牌
+                    fetch(config.tokenUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ code })
+                    })
+                    .then(response => {
+                        console.log('令牌交换响应状态:', response.status);
+                        return response.json().catch(() => {
+                            console.error('无法解析响应为JSON');
+                            throw new Error(`HTTP错误: ${response.status} (无法解析响应)`);
+                        });
+                    })
+                    .then(data => {
+                        console.log('令牌交换响应数据:', data);
+                        if (data.access_token && data.user && typeof data.user === 'object') {
+                            // 保存令牌和用户信息
+                            localStorage.setItem('github_token', data.access_token);
+                            localStorage.setItem('github_user', JSON.stringify(data.user));
+                            console.log('令牌和用户信息已保存到localStorage');
+                            
+                            // 隐藏加载状态
+                            hideLoading();
+                            
+                            // 显示应用页面
+                            showAppPage(data.user);
+                            
+                            // 从 URL 中移除 code 参数
+                            history.replaceState({}, document.title, window.location.pathname);
+                            resolve();
+                        } else {
+                            throw new Error(`令牌交换失败: 缺少必要参数 (access_token: ${!!data.access_token}, user: ${typeof data.user})`);
+                        }
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        console.error('登录错误详情:', error);
+                        showError('登录失败', `${error.message}\n请检查控制台获取更多信息`);
+                        reject(error);
+                    });
+                } else {
+                    console.log('没有检测到授权码，跳过令牌交换');
+                    resolve();
+                }
+            });
+        }
+
+        // 发布文章到 GitHub
+        function publishArticle() {
+            // 验证表单
+            if (!articleTitle.value.trim()) {
+                showError('发布失败', '请输入文章标题');
+                return;
+            }
+            
+            if (!articleContent.value.trim()) {
+                showError('发布失败', '请输入文章内容');
+                return;
+            }
+            
+            const selectedRepo = document.getElementById('github-repo').value;
+            if (!selectedRepo) {
+                showError('发布失败', '请选择 GitHub 仓库');
+                return;
+            }
+            
+            const selectedPath = document.getElementById('article-path').value;
+            if (!selectedPath) {
+                showError('发布失败', '请选择文章路径');
+                return;
+            }
+            
+            // 显示加载状态
+            showLoading('正在发布文章', '正在上传到 GitHub...');
+            
+            // 准备文章内容
+            const articleData = {
+                title: articleTitle.value,
+                slug: articleSlug.value || generateSlug(articleTitle.value),
+                date: articleDate.value,
+                draft: document.getElementById('article-draft').checked,
+                categories: document.getElementById('article-categories').value.split(',').map(cat => cat.trim()).filter(cat => cat),
+                tags: articleTags.value.split(',').map(tag => tag.trim()).filter(tag => tag),
+                rating: document.getElementById('article-rating').value,
+                version: document.getElementById('article-version').value,
+                size: document.getElementById('article-size').value,
+                downloadCount: document.getElementById('article-downloadCount').value,
+                platforms: document.getElementById('article-platforms').value.split(',').map(plat => plat.trim()).filter(plat => plat),
+                downloads: {
+                    official: document.getElementById('article-official-download').value,
+                    quark: document.getElementById('article-quark-download').value,
+                    netdisk: document.getElementById('article-netdisk-download').value,
+                    baidu: document.getElementById('article-baidu-download').value,
+                    thunder: document.getElementById('article-thunder-download').value
+                },
+                official_website: document.getElementById('article-official-website').value,
+                image: document.getElementById('article-image').value,
+                previousVersions: getPreviousVersions(),
+                systemRequirements: getSystemRequirements(),
+                changelog: document.getElementById('article-changelog').value.split('\n').filter(line => line.trim()),
+                content: articleContent.value
+            };
+
+            // 创建 Markdown 内容
+            const markdownContent = `---
+title: "${articleData.title}"
+date: ${articleData.date}+08:00
+draft: ${articleData.draft}
+categories:
+  - ${articleData.categories.join('\n  - ')}
+tags:
+  - ${articleData.tags.join('\n  - ')}
+rating: ${articleData.rating}
+version: "${articleData.version}"
+size: "${articleData.size}"
+downloadCount: ${articleData.downloadCount}
+downloads:
+  official: "${articleData.downloads.official}"
+platforms: [${articleData.platforms.map(plat => "${plat}").join(', ')}]
+system_requirements:
+  Windows:
+    ${articleData.systemRequirements.Windows?.map(req => `- ${req}`).join('\n    ')}
+  macOS:
+    ${articleData.systemRequirements.macOS?.map(req => `- ${req}`).join('\n    ')}
+  Linux:
+    ${articleData.systemRequirements.Linux?.map(req => `- ${req}`).join('\n    ')}
+changelog:
+  ${articleData.changelog.map(item => `- ${item}`).join('\n  ')}
+previous_versions:
+  ${articleData.previousVersions.map(version => `- version: "${version.version}"
+    date: ${version.date}
+    changes:
+      ${version.changes.map(change => `- ${change}`).join('\n      ')}`).join('\n  ')}
+---
+
+${articleData.content}
+`;
+            
+            // 准备提交到 GitHub 的数据
+            const githubData = {
+                repo: selectedRepo,
+                path: `content/${selectedPath}/${articleData.slug}.md`,
+                message: `Create new article: ${articleData.title}`,
+                content: btoa(unescape(encodeURIComponent(markdownContent))) // Base64 编码
+            };
+            
+            // 发送到 GitHub API
+            const token = localStorage.getItem('github_token');
+            
+            // 获取当前登录用户信息
+            const currentUser = JSON.parse(localStorage.getItem('github_user'));
+            // 使用实际用户名构建请求URL
+            fetch(`https://api.github.com/repos/${currentUser.login}/${githubData.repo}/contents/${githubData.path}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: githubData.message,
+                    content: githubData.content
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('GitHub API 返回错误: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                
+                // 保存草稿
+                saveDraft();
+                
+                // 显示成功消息
+                showSuccess('发布成功', '您的文章已成功发布到 GitHub');
+                
+                // 显示发布状态
+                publishStatus.classList.remove('hidden');
+                setTimeout(() => {
+                    publishStatus.classList.add('hidden');
+                }, 5000);
+            })
+            .catch(error => {
+                hideLoading();
+                showError('发布失败', error.message);
+            });
+        }
+
+        // 保存草稿
+        function saveDraft() {
+            const draft = {
+                title: articleTitle.value,
+                content: articleContent.value,
+                date: articleDate.value,
+                tags: articleTags.value,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('article_draft', JSON.stringify(draft));
+        }
+
+        // 加载草稿
+        function loadDraft() {
+            const draft = localStorage.getItem('article_draft');
+            if (draft) {
+                const draftData = JSON.parse(draft);
+                articleTitle.value = draftData.title || '';
+                articleContent.value = draftData.content || '';
+                articleDate.value = draftData.date || today;
+                articleTags.value = draftData.tags || '';
+                
+                // 生成 slug
+                generateSlug();
+                
+                // 更新预览
+                updatePreview();
+            }
+        }
+
+        // 更新预览
+        function updatePreview() {
+            // 这里应该使用 Markdown 解析器将 Markdown 转换为 HTML
+            // 为简化示例，我们仅显示文本内容
+            const content = articleContent.value || '';
+            
+            // 简单的 Markdown 转 HTML 处理
+            let html = content
+                .replace(/# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/\*\*(.*)\*\*/gm, '<strong>$1</strong>')
+                .replace(/\*(.*)\*/gm, '<em>$1</em>')
+                .replace(/```([\s\S]*?)```/gm, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/gm, '<code>$1</code>')
+                .replace(/!\[(.*?)\]\((.*?)\)/gm, '<img src="$2" alt="$1" class="max-w-full rounded-lg shadow-md my-4">')
+                .replace(/\[(.*?)\]\((.*?)\)/gm, '<a href="$2" class="text-primary hover:underline">$1</a>')
+                .replace(/^\> (.*$)/gm, '<blockquote class="border-l-4 border-gray-300 pl-4 italic my-4">$1</blockquote>')
+                .replace(/\n{2,}/g, '<p></p>')
+                .replace(/\n/g, '<br>');
+            
+            articlePreview.innerHTML = html;
+        }
+
+        // 显示加载模态框
+        function showLoading(message, submessage) {
+            loadingMessage.textContent = message || '正在处理...';
+            loadingSubmessage.textContent = submessage || '请稍候...';
+            loadingModal.classList.remove('hidden');
+        }
+
+        // 隐藏加载模态框
+        function hideLoading() {
+            loadingModal.classList.add('hidden');
+        }
+
+        // 显示成功模态框
+        function showSuccess(message, submessage) {
+            successMessage.textContent = message || '操作成功';
+            successSubmessage.textContent = submessage || '';
+            successModal.classList.remove('hidden');
+            
+            // 添加动画效果
+            setTimeout(() => {
+                successModalContent.classList.remove('scale-95', 'opacity-0');
+                successModalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        // 隐藏成功模态框
+        function hideSuccess() {
+            successModalContent.classList.remove('scale-100', 'opacity-100');
+            successModalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                successModal.classList.add('hidden');
+            }, 300);
+        }
+
+        // 显示错误模态框
+        function showError(message, submessage) {
+            errorModalMessage.textContent = message || '操作失败';
+            errorModalSubmessage.textContent = submessage || '';
+            errorModal.classList.remove('hidden');
+        }
+
+        // 隐藏错误模态框
+        function hideError() {
+            errorModal.classList.add('hidden');
+        }
+
+        // 事件监听器
+        githubLoginBtn.addEventListener('click', handleLogin);
+        logoutBtn.addEventListener('click', handleLogout);
+        userMenuBtn.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        publishArticleBtn.addEventListener('click', publishArticle);
+        saveDraftBtn.addEventListener('click', saveDraft);
+        mobileSaveDraftBtn.addEventListener('click', saveDraft);
+        successOkBtn.addEventListener('click', hideSuccess);
+        errorOkBtn.addEventListener('click', hideError);
+        
+        // 点击其他区域关闭下拉菜单
+        document.addEventListener('click', (event) => {
+            if (!userMenuBtn.contains(event.target) && !userDropdown.contains(event.target)) {
+                userDropdown.classList.add('hidden');
+            }
+            
+            if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // 文章内容变化时更新预览
+        articleContent.addEventListener('input', updatePreview);
+        
+        // 预览文章按钮点击事件
+        previewArticleBtn.addEventListener('click', () => {
+            if (articleContent.value.trim()) {
+                updatePreview();
+                // 这里应该打开一个新窗口预览文章
+                alert('预览功能将在实际部署中实现');
+            } else {
+                showError('预览失败', '文章内容不能为空');
+            }
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 检查是否有授权码
+            await handleAuthCallback();
+            
+            // 检查是否已登录
+            checkLoggedIn();
+            
+            // 设置日期默
+            articleDate.value = new Date().toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
